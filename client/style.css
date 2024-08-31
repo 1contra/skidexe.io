@@ -270,6 +270,17 @@ canvas {
     left: 10px; 
 }
 
+#scoreDisplay { 
+    top: 50px; 
+    left: 10px; 
+    position: absolute; 
+    color: #ff5f6d; /* Text color matching the gradient */
+    user-select: none; 
+    font-family: Arial, sans-serif; 
+    font-size: 14px; 
+    z-index: 2;
+}
+
 #ms { 
     top: 30px; 
     left: 10px; 

@@ -53,18 +53,15 @@ async function loadConfig() {
         const response = await fetch('/api/config');
         const config = await response.json();
 
-        // Use the configuration
         console.log('Server HTTP URL:', config.server.http);
         console.log('WebSocket Server URL:', config.server.wss);
 
-        // Example: Connect to WebSocket
         const socket = new WebSocket(config.server.wss);
 
         socket.onopen = () => {
             console.log('WebSocket connection established');
         };
 
-        // Handle WebSocket messages, etc.
     } catch (error) {
         console.error('Error loading config:', error);
     }
@@ -123,6 +120,11 @@ function addMessage(text) {
     });
 }
 
+function updateScoreDisplay() {
+    const scoreElement = document.getElementById('score');
+    scoreElement.textContent = `Score: ${player.score}`;
+}
+
 function drawMessages() {
     if (!gameStart) return;
     ctx.font = '20px Arial';
@@ -142,6 +144,7 @@ const player = {
     x: mapSize / 2,
     y: mapSize / 2,
     radius: 15,
+    id: '',
     color: '#00bbff',
     borderColor: '#007fad',
     speed: 0.1,
@@ -155,6 +158,7 @@ const player = {
     barrelColor: '#8f8f8f',
     barrelBorderColor: '#6e6e6e',
     angle: 0,
+    score: 0,
     name: "",
     score: 0,
     get hitbox() {
@@ -380,12 +384,21 @@ function connectWebSocket() {
 
         } 
 
-        if (data.type === 'updateBarrels') {
+        else if (data.type === 'updateBarrels') {
 
             barrels.length = 0;
             data.barrels.forEach(barrel => barrels.push(barrel));
         }
 
+        
+        else if (data.type === 'scoreUpdate') {
+            const { playerId, score } = data;
+    
+            if (playerId === player.id) {
+                player.score = score;
+                updateScoreDisplay();
+            }
+        }
 
         else if (data.type === 'updatePolygons') {
 
@@ -401,12 +414,14 @@ function connectWebSocket() {
                     sides: polygon.sides,
                     radius: polygon.radius,
                     color: polygon.color,
+                    score: polygon.score,
                     borderColor: polygon.borderColor,
                     speed: polygon.speed,
                     health: polygon.health,
                     opacity: polygon.opacity,
                     isFading: polygon.isFading,
                     baseHealth: polygon.baseHealth,
+                    score: polygon.score,
 
                 });
 
@@ -446,6 +461,8 @@ function drawPolygons(ctx) {
     });
 }
 
+const baseHealthValues = [10, 20, 50, 100, 200, 1000, 2000, 3000];
+
 function drawPolygon(ctx, polygon) {
 
     ctx.save();
@@ -455,8 +472,11 @@ function drawPolygon(ctx, polygon) {
 
     ctx.beginPath();
     const angleStep = (2 * Math.PI) / polygon.sides;
-    const startAngle = 0;
+    //const startAngle = 0;
     let prevX, prevY, firstX, firstY;
+
+    const sidesIndex = polygon.sides - 3; 
+    polygon.baseHealth = baseHealthValues[sidesIndex] || 10;
 
     for (let i = 0; i < polygon.sides; i++) {
         const startAngle = polygon.angle;
@@ -469,14 +489,14 @@ function drawPolygon(ctx, polygon) {
             firstX = x;
             firstY = y;
         } else {
-            ctx.arcTo(prevX, prevY, x, y, cornerRadius);
+            ctx.lineTo(x, y);
         }
 
         prevX = x;
         prevY = y;
     }
 
-    ctx.arcTo(prevX, prevY, firstX, firstY, cornerRadius);
+    ctx.lineTo(firstX, firstY);
     ctx.closePath();
     ctx.fillStyle = polygon.color;
     ctx.globalAlpha = polygon.opacity;
@@ -485,23 +505,46 @@ function drawPolygon(ctx, polygon) {
     ctx.lineWidth = 4;
     ctx.stroke();
 
-
-    // Draw the health bar
-    const barWidth = polygon.radius * 2; // Width of the health bar
-    const barHeight = 8; // Height of the health bar
-    const healthBarMargin = 5; // Margin between the polygon and health bar
-
-    // Draw the background of the health bar
-    ctx.fillStyle = '#000000'; // Background color (black or any color)
-    ctx.fillRect(-polygon.radius, polygon.radius + healthBarMargin, barWidth, barHeight);
-
-    // Draw the fill of the health bar
-    ctx.fillStyle = '#FF0000'; // Health bar fill color (red or any color)
-    const healthBarWidth = Math.max((polygon.health / polygon.maxHealth) * barWidth, 0); // Ensure healthBarWidth is not negative
-    ctx.fillRect(-polygon.radius, polygon.radius + healthBarMargin, healthBarWidth, barHeight);
-
-
     ctx.restore();
+
+    if (polygon.health <= .1) return;
+
+    const barWidth = polygon.radius * 1.5;
+    const barHeight = 6;
+    const healthPercentage = polygon.health / polygon.baseHealth;
+
+    const healthBarWidth = barWidth * 1;
+    const healthBarHeight = barHeight * 1;
+
+    const healthBarX = polygon.x;
+    const healthBarY = polygon.y + polygon.radius + barHeight + 10;
+
+    ctx.fillStyle = 'rgba(128, 128, 128, 0.5)';
+    drawRoundedRect(healthBarX - barWidth / 2, healthBarY, barWidth, barHeight, 5);
+    ctx.fill();
+
+    const HhealthBarX = polygon.x;
+    const HhealthBarY = polygon.y + polygon.radius + barHeight + 10;
+
+    ctx.fillStyle = polygon.color
+    drawRoundedRect(HhealthBarX - healthBarWidth / 2, HhealthBarY, healthBarWidth * healthPercentage, healthBarHeight, 3);
+
+    ctx.fill();
+
+}
+
+function drawRoundedRect(x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.arc(x + width - radius, y + radius, radius, 1.5 * Math.PI, 2 * Math.PI);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.arc(x + width - radius, y + height - radius, radius, 0, 0.5 * Math.PI);
+    ctx.lineTo(x + radius, y + height);
+    ctx.arc(x + radius, y + height - radius, radius, 0.5 * Math.PI, Math.PI);
+    ctx.lineTo(x, y + radius);
+    ctx.arc(x + radius, y + radius, radius, Math.PI, 1.5 * Math.PI);
+    ctx.closePath();
 }
 
 function drawGrid() {
