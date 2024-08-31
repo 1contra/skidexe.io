@@ -9,7 +9,7 @@ port = 3000;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const players = new Map();
-const BULLET_POOL_SIZE = 100;
+const BULLET_POOL_SIZE = 10000;
 const bulletPool = [];
 const activeBullets = new Map();
 const barrels = new Map();
@@ -175,50 +175,50 @@ class Polygon {
 }
 
 class Triangle extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200) {
-        super(x, y, 3, radius, color, borderColor, speed, health, fadeDuration);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth) {
+        super(x, y, 3, radius, color, borderColor, speed, health, fadeDuration, baseHealth);
     }
 }
 
 class Square extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200) {
-        super(x, y, 4, radius, color, borderColor, speed, health, fadeDuration);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth) {
+        super(x, y, 4, radius, color, borderColor, speed, health, fadeDuration, baseHealth);
     }
 }
 
 class Pentagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200) {
-        super(x, y, 5, radius, color, borderColor, speed, health, fadeDuration);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth) {
+        super(x, y, 5, radius, color, borderColor, speed, health, fadeDuration, baseHealth);
     }
 }
 
 class Hexagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200) {
-        super(x, y, 6, radius, color, borderColor, speed, health, fadeDuration);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth) {
+        super(x, y, 6, radius, color, borderColor, speed, health, fadeDuration, baseHealth);
     }
 }
 
 class Heptagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200) {
-        super(x, y, 7, radius, color, borderColor, speed, health, fadeDuration);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth) {
+        super(x, y, 7, radius, color, borderColor, speed, health, fadeDuration, baseHealth);
     }
 }
 
 class Octagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200) {
-        super(x, y, 8, radius, color, borderColor, speed, health, fadeDuration);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth) {
+        super(x, y, 8, radius, color, borderColor, speed, health, fadeDuration, baseHealth);
     }
 }
 
 class Nanogon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200) {
-        super(x, y, 9, radius, color, borderColor, speed, health, fadeDuration);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth) {
+        super(x, y, 9, radius, color, borderColor, speed, health, fadeDuration, baseHealth);
     }
 }
 
 class Decagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200) {
-        super(x, y, 10, radius, color, borderColor, speed, health, fadeDuration);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth) {
+        super(x, y, 10, radius, color, borderColor, speed, health, fadeDuration, baseHealth);
     }
 }
 
@@ -337,7 +337,7 @@ function spawnPolygons(count) {
         const borderColor = borderColors[type] || '#000000';
         const speed = polygonSpeed[type] || 1;
         const health = polygonHealth[type] || 100;
-        const baseHealth = polygonBaseHealth || 100;
+        const baseHealth = polygonBaseHealth[type] || 100;
         
         let polygon;
         switch (type) {
@@ -423,6 +423,7 @@ function broadcastPolygonUpdates(wss) {
     const polygonData = polygons.map(polygon => ({
         x: polygon.x,
         y: polygon.y,
+        angle: polygon.angle,
         sides: polygon.sides,
         radius: polygon.radius,
         color: polygon.color,

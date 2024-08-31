@@ -397,6 +397,7 @@ function connectWebSocket() {
 
                     x: polygon.x,
                     y: polygon.y,
+                    angle: polygon.angle,
                     sides: polygon.sides,
                     radius: polygon.radius,
                     color: polygon.color,
@@ -458,6 +459,7 @@ function drawPolygon(ctx, polygon) {
     let prevX, prevY, firstX, firstY;
 
     for (let i = 0; i < polygon.sides; i++) {
+        const startAngle = polygon.angle;
         const angle = startAngle + i * angleStep;
         const x = Math.cos(angle) * polygon.radius;
         const y = Math.sin(angle) * polygon.radius;
