@@ -1,26 +1,26 @@
 {
-    "name": "skidexe.io",
-    "version": "1.0.0",
-    "main": "script.js",
-    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1",
-      "dev": "cross-env NODE_ENV=development node server.js",
-      "start": "cross-env NODE_ENV=production node server.js",
-      "build": "vite build",
-      "serve": "vite preview"
-    },
-    "keywords": [],
-    "author": "1contra",
-    "license": "ISC",
-    "description": "",
-    "dependencies": {
-      "cross-env": "^7.0.3",
-      "dotenv": "^16.4.5",
-      "express": "^4.19.2",
-      "ws": "^8.18.0"
-    },
-    "devDependencies": {
-      "vite": "^5.4.2"
-    }
+  "name": "skidexe.io",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "cross-env NODE_ENV=development node server.js",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "keywords": [],
+  "author": "1contra",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.2"
   }
-  
+}

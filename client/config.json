@@ -1,0 +1,6 @@
+{
+    "server": {
+        "http": "http://localhost:3000",
+        "wss": "ws://localhost:3000"
+    }
+}
