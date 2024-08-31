@@ -1,0 +1,461 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: linear-gradient(45deg, #a2c2e2, #f8c6d2); /* Light blue to light pink gradient */
+    color: #333; /* Darker text color for better contrast on the background */
+}
+
+.container {
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    justify-content: center;
+    gap: 20px; /* Maintain a 20px gap between menu and changelog box */
+    padding: 20px;
+}
+
+#changelog {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9); /* Slightly transparent background */
+    border-radius: 10px;
+    padding: 50px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Light shadow effect */
+    position: absolute;
+    left: 20px; /* Position it to the left */
+    top: 50%;
+    transform: translateY(-50%); /* Center vertically */
+    z-index: 1;
+    max-width: 300px;
+    width: 100%;
+    max-height: 500px;
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    color: #333; /* Text color */
+    font-family: Arial, sans-serif; /* Font style */
+    text-align: left; /* Align text to the left */
+}
+
+/* Style for the text inside the changelog */
+#changelog p {
+    margin: 0 0 10px 0; /* Space between paragraphs */
+    font-size: 16px; /* Font size */
+    line-height: 1.5; /* Line spacing */
+}
+
+/* Optionally, you can style the changelog title */
+#changelog h2 {
+    font-size: 24px; /* Title font size */
+    margin-bottom: 20px; /* Space below the title */
+    color: #333; /* Title color */
+    text-align: center; /* Center the title */
+}
+
+/* Responsive layout to avoid overlap */
+@media (max-width: 900px) {
+    .container {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    #menu, #changelog {
+        width: 100%;
+        max-width: 400px;
+    }
+}
+
+#serverSelection {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.9); /* Slightly transparent background */
+    border: none; /* Remove the border */
+    border-radius: 8px; /* Rounded corners */
+    padding: 0; /* Remove padding */
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    justify-content: center; /* Center the arrow buttons and server tab */
+}
+
+#serverSelectionContainer {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: center; /* Center the arrow buttons and server tab */
+}
+
+/* Add animation for color transition */
+@keyframes colorFade {
+    0% {
+        background-position: 0% 0%; /* Start position of gradient */
+    }
+    50% {
+        background-position: 100% 100%; /* End position of gradient */
+    }
+    100% {
+        background-position: 0% 0%; /* Return to start position */
+    }
+}
+
+/* Apply animation to the server tab */
+#serverTab {
+    font-size: 18px;
+    padding: 10px;
+    background: linear-gradient(45deg, #a2c2e2, #f8c6d2); /* Light blue to light pink gradient */
+    color: #333; /* Darker text color for better contrast */
+    border-radius: 8px;
+    margin: 0; /* Remove margins */
+    text-align: center;
+    width: 200px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Light shadow for a subtle effect */
+    transition: box-shadow 0.3s;
+    background-size: 200% 200%; /* Ensure smooth gradient transition */
+    animation: colorFade 10s ease infinite; /* Smooth, infinite color transition */
+    justify-content: center; /* Center the arrow buttons and server tab */
+}
+
+#serverTab:hover {
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); /* Slightly enhanced glow on hover */
+}
+
+.arrow-button {
+    font-size: 24px; /* Arrow icon size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: color 0.3s; /* Smooth transition */
+    color: #a2c2e2; /* Light blue color */
+    padding: 10px;
+}
+
+.arrow-button:hover {
+    color: #f8c6d2; /* Light pink color on hover */
+}
+
+.arrow-button:active {
+    color: #a2c2e2; /* Light blue color on click */
+}
+
+.arrow-button-left {
+    margin-right: 5px; /* Space between left arrow and server tab */
+}
+
+.arrow-button-right {
+    margin-left: 5px; /* Space between server tab and right arrow */
+}
+
+/* Animation for color transition */
+@keyframes colorShift {
+    0% {
+        background-position: 0% 0%;
+    }
+    50% {
+        background-position: 100% 100%;
+    }
+    100% {
+        background-position: 0% 0%;
+    }
+}
+
+#startButton {
+    font-size: 24px; /* Larger text */
+    padding: 15px 30px; /* Bigger button */
+    border: none; /* Remove default border */
+    border-radius: 12px; /* Rounded corners */
+    background: linear-gradient(45deg, #a2c2e2, #f8c6d2); /* Light blue to light pink gradient */
+    color: #333; /* Darker text color */
+    cursor: pointer; /* Pointer cursor on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Light shadow effect */
+    transition: transform 0.3s, box-shadow 0.3s; /* Smooth transitions */
+    outline: none; /* Remove default outline */
+    margin-top: 20px;
+    background-size: 200% 200%; /* Ensure smooth gradient transition */
+    animation: colorShift 10s ease infinite; /* Smooth, infinite color transition */
+}
+
+#startButton:hover {
+    transform: scale(1.05); /* Slightly enlarge on hover */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow effect on hover */
+}
+
+#startButton:active {
+    transform: scale(0.95); /* Slightly shrink when clicked */
+}
+
+#playerName {
+    font-size: 18px; /* Larger text */
+    padding: 10px 15px; /* Add padding */
+    border: 2px solid #a2c2e2; /* Border color matching the gradient */
+    border-radius: 8px; /* Rounded corners */
+    background: rgba(255, 255, 255, 0.9); /* Light semi-transparent background */
+    color: #333; /* Dark text color */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Light shadow effect */
+    transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transitions */
+    outline: none; /* Remove default outline */
+    width: 100%; /* Full width */
+    max-width: 400px; /* Max width for better control */
+    margin-top: 20px; /* Space above the input field */
+}
+
+#playerName::placeholder {
+    color: #888; /* Placeholder text color */
+    font-style: italic; /* Italic placeholder text */
+}
+
+h1 {
+    font-family: 'Arial', sans-serif; /* Use a clean, modern font */
+    font-size: 4em; /* Increase font size */
+    background: linear-gradient(45deg, #a2c2e2, #f8c6d2); /* Light blue to light pink gradient */
+    -webkit-background-clip: text; /* Clip the background to the text */
+    -webkit-text-fill-color: transparent; /* Make the text color transparent */
+    padding: 10px 20px; /* Padding around the text */
+    border-radius: 8px; /* Rounded corners for the background */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Light shadow effect */
+    text-align: center; /* Center the text */
+    margin: 0; /* Remove default margin */
+    transition: background 0.3s, transform 0.3s; /* Smooth transitions */
+}
+
+h1:hover {
+    transform: scale(1.05); /* Slightly enlarge on hover */
+}
+
+#playerName:focus {
+    border-color: #f8c6d2; /* Change border color on focus */
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1); /* Enhanced shadow on focus */
+}
+
+#playerName:hover {
+    border-color: #f8c6d2; /* Change border color on hover */
+}
+
+#menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9); /* Slightly transparent background */
+    border-radius: 10px;
+    padding: 70px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Light shadow effect */
+    position: absolute;
+    z-index: 1;
+}
+
+canvas {
+    display: block;
+    background-color: #f0f0f0; /* Background color for the canvas */
+}
+
+#gameCanvas {
+    border: 1px solid #ff5f6d; /* Border color matching the gradient */
+    position: relative;
+}
+
+#fps, #ms { 
+    position: absolute; 
+    color: #ff5f6d; /* Text color matching the gradient */
+    user-select: none; 
+    font-family: Arial, sans-serif; 
+    font-size: 14px; 
+    z-index: 2;
+}
+
+#fps { 
+    top: 40px; 
+    left: 10px; 
+}
+
+#ms { 
+    top: 30px; 
+    left: 10px; 
+}
+
+#discordIcon {
+    font-size: 24px; /* Icon size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: color 0.3s, box-shadow 0.3s; /* Smooth transition */
+    position: absolute; /* Absolute positioning */
+    bottom: 10px; /* Distance from the bottom */
+    border-radius: 6px; /* Rounded corners for square background */
+    padding: 5px; /* Space around the icon */
+    width: 32px; /* Smaller fixed width for consistency */
+    height: 32px; /* Smaller fixed height for consistency */
+    display: flex; /* Center the icon */
+    align-items: center; /* Center the icon vertically */
+    justify-content: center; /* Center the icon horizontally */
+}
+
+#githubIcon {
+    font-size: 24px; /* Icon size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: color 0.3s, box-shadow 0.3s; /* Smooth transition */
+    position: absolute; /* Absolute positioning */
+    bottom: 10px; /* Distance from the bottom */
+    border-radius: 6px; /* Rounded corners for square background */
+    padding: 5px; /* Space around the icon */
+    width: 32px; /* Smaller fixed width for consistency */
+    height: 32px; /* Smaller fixed height for consistency */
+    display: flex; /* Center the icon */
+    align-items: center; /* Center the icon vertically */
+    justify-content: center; /* Center the icon horizontally */
+}
+
+#discordIcon {
+    color: #fff; /* Icon color */
+    background: #7289da; /* Discord background color */
+    border: 2px solid #7289da; /* Purple border */
+    left: 10px; /* Distance from the left */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Glowing effect */
+}
+
+#discordIcon:hover {
+    color: #fff; /* Keep icon color on hover */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7); /* Enhanced glowing effect on hover */
+}
+
+#githubIcon {
+    color: #fff; /* Icon color */
+    background: #333; /* GitHub background color */
+    border: 2px solid #333; /* Dark grey border */
+    left: 60px; /* Distance from the left, adjusted for spacing */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Glowing effect */
+}
+
+#githubIcon:hover {
+    color: #fff; /* Keep icon color on hover */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7); /* Enhanced glowing effect on hover */
+}
+
+.button-container {
+    display: flex;
+    align-items: center;
+    margin-top: 20px; /* Space above the button container */
+}
+
+/* New styles for the toggle menu */
+#exitMenu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Dark grey with transparency */
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Ensure it's above other content */
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+/* Styling for the buttons */
+.circular-button {
+    width: 120px; /* Width of the button */
+    height: 50px; /* Height of the button */
+    border-radius: 25px; /* Rounded corners */
+    background-color: #444; /* Default background color */
+    color: white; /* Text color */
+    border: 2px solid #fff; /* Solid white border */
+    display: flex; /* Flexbox layout */
+    align-items: center; /* Center text vertically */
+    justify-content: center; /* Center text horizontally */
+    font-size: 1em; /* Font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Smooth color transition */
+    margin: 10px; /* Margin around buttons */
+    position: relative; /* Position relative for text */
+}
+
+.circular-button:hover {
+    background-color: #555; /* Slightly lighter background on hover */
+}
+
+/* Adjustments for slider buttons */
+.slider-button-container {
+    display: flex; /* Flexbox layout */
+    align-items: center; /* Center items vertically */
+    margin: 10px 0; /* Margin around buttons */
+}
+
+.slider-button-label {
+    margin-right: 15px; /* Space between label and button */
+    font-size: 1em; /* Font size for labels */
+    color: white; /* Text color */
+}
+
+.slider-button {
+    width: 60px; /* Width of the button */
+    height: 20px; /* Height of the button */
+    border-radius: 30px; /* Rounded corners */
+    background-color: #444; /* Default background color */
+    border: 3px solid #272626; /* Light grey border */
+    position: relative; /* Position relative for slider effect */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Smooth color transition */
+    display: flex; /* Flexbox layout */
+    align-items: center; /* Center slider knob vertically */
+    padding: 5px; /* Padding for inner elements */
+}
+
+.slider-button::before {
+    content: ''; /* Create the slider knob */
+    width: 20px; /* Width of the knob */
+    height: 20px; /* Height of the knob */
+    border-radius: 50%; /* Circular shape */
+    background-color: #ddd; /* Default knob color */
+    position: absolute; /* Absolute position inside the button */
+    top: 5px; /* Position from the top */
+    left: 5px; /* Position from the left */
+    transition: transform 0.3s, background-color 0.3s; /* Smooth transitions */
+}
+
+.slider-button.active {
+    background-color: #0f0; /* Green background when active */
+}
+
+.slider-button.active::before {
+    transform: translateX(40px); /* Move knob to the right */
+    background-color: rgb(102, 102, 102); /* Green knob color when active */
+}
+
+#menuContent {
+    text-align: center; /* Center text */
+    background: rgba(50, 50, 50, 0.9); /* Slightly transparent background */
+    padding: 30px; /* Adjust padding as needed */
+    border-radius: 10px; /* Rounded corners */
+    border: 2px solid #fff; /* Solid white border */
+    max-width: 400px; /* Limit width */
+    margin: 0 auto; /* Center horizontally */
+}
+
+#resumeBtn, #leaveBtn {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    background: #444;
+    border: none;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#resumeBtn:hover, #leaveBtn:hover {
+    background: #555;
+}
+
+.hidden {
+    display: none;
+}
+
+body, h1, h2, p, input, button, a, #serverTab, #resumeBtn, #leaveBtn {
+    -webkit-user-select: none; /* Chrome, Safari, and Opera */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* Internet Explorer/Edge */
+    user-select: none;         /* Non-prefixed version, currently supported by Chrome, Opera, and Edge */
+}

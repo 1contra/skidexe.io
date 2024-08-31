@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>skidexe.io</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Skidexe.io - The Ultimate 2D Game">
+    <meta property="og:description" content="Join Skidexe.io, an boring-packed 2D multiplayer game. Battle with idiots and dominate the leaderboard!">
+    <meta property="og:image" content="https://scenexe.io/assets/icon1280bkg.png">
+    <meta property="og:url" content="https://surviv-halloween.pro.com">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="/Big-Abyssling.ico" type="image/x-icon">
+</head>
+<body>
+    <div id="changelog">
+        <h2>Changelog</h2>
+        <p><strong>Version 1.2.0</strong></p>
+        <p> - Polygon colision (WIP).</p>
+        <p> - Improved UI design.</p>
+        <p> - Fix NA bullet id.</p>
+        <p><strong>Version 1.1.0</strong></p>
+        <p> - Added changelog section.</p>
+        <p> - Enhanced performance.</p>
+        <p> - Updated documentation.</p>
+        <!-- Add more updates as needed -->
+    </div>
+    <div id="menu">
+        <h1>skidexe.io</h1>
+        <input type="text" id="playerName" placeholder="Your name">
+        <div id="serverSelection">
+            <div id="serverSelectionContainer">
+                <div class="arrow-button arrow-button-left" id="leftArrow">
+                    <i class="fas fa-chevron-left"></i>
+                </div>
+                <div id="serverTab">Loading...</div>
+                <div class="arrow-button arrow-button-right" id="rightArrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        </div>
+        <button id="startButton">Play</button>
+        <a href="https://discord.gg/24gwmwRGfk" target="_blank" id="discordIcon">
+            <i class="fab fa-discord"></i>
+        </a>
+        <a href="https://github.com/your-repo" target="_blank" id="githubIcon">
+            <i class="fab fa-github"></i>
+        </a>
+    </div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="fps"></div>
+    <div id="ms"></div>
+    <div id="exitMenu" class="hidden">
+        <div id="menuContent">
+            <div class="slider-button-container">
+                <span class="slider-button-label">Show FPS</span>
+                <div id="showFpsBtn" class="slider-button"></div>
+            </div>
+            <div class="slider-button-container">
+                <span class="slider-button-label">Debug Mode</span>
+                <div id="debugModeBtn" class="slider-button"></div>
+            </div>
+            <button id="resumeBtn" class="circular-button">Resume<i class="fas fa-play"></i></button>
+            <button id="leaveBtn" class="circular-button">Leave <i class="fas fa-sign-out-alt"></i></button>
+            
+            <div id="optionsContainer">
+                <!-- Add options here -->
+            </div>
+        </div>
+    </div>
+    <script type="module" src="/script.js"></script>
+</body>
+</html>
