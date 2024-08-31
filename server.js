@@ -449,14 +449,6 @@ function spawnPolygon() {
     broadcastPolygonUpdates(wss);
 }
 
-function broadcast(message) {
-    wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(message));
-        }
-    });
-}
-
 function isBulletCollidingWithPolygon(bullet, polygon) {
     const dx = bullet.x - polygon.x;
     const dy = bullet.y - polygon.y;
