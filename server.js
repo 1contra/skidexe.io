@@ -567,27 +567,26 @@ function updateBullets() {
             return;
         }
 
-        polygons.forEach(polygon => {
-
+        // Check collision with polygons
+        let hitPolygon = null;
+        for (const polygon of polygons) {
             if (isBulletCollidingWithPolygon(bullet, polygon)) {
+                hitPolygon = polygon;
+                break;
+            }
+        }
 
-                if (polygon.health <= 0) return;
+        if (hitPolygon) {
+            if (hitPolygon.health > 0) {
+                hitPolygon.takeDamage(10);
 
-                polygon.takeDamage(10);
-
-                if (polygon.health <= 0) {
-                    let player = null;
-
-                    players.forEach(p => {
-                        if (p.id === bullet.ownerId) {
-                            player = p;
-                        }
-                    });
-
+                if (hitPolygon.health <= 0) {
+                    const player = [...players.values()].find(p => p.id === bullet.ownerId);
+                    
                     if (player) {
-                        player.score += polygon.score;
-                        console.log(`Player ${player.id} scored ${polygon.score} points! Total Score: ${player.score}`);
-
+                        player.score += hitPolygon.score;
+                        console.log(`Player ${player.id} scored ${hitPolygon.score} points! Total Score: ${player.score}`);
+                        
                         broadcast({
                             type: 'scoreUpdate',
                             playerId: player.id,
@@ -596,33 +595,33 @@ function updateBullets() {
                     }
                 }
 
-                console.log(`bullet hit a shape ${polygon}`)
+                console.log(`Bullet hit a shape ${hitPolygon}`);
                 bulletsToRemove.push(bulletId);
                 returnBulletToPool(bullet);
 
                 broadcast({
                     type: 'bulletHit',
                     bulletId,
-                    polygonId: polygon.id
+                    polygonId: hitPolygon.id
                 });
-
-                return;
             }
-        });
+            return;
+        }
 
-        players.forEach((player) => {
+        // Check collision with players
+        for (const player of players.values()) {
             if (bullet.ownerId !== player.id && isColliding(bullet, player)) {
                 bulletsToRemove.push(bulletId);
                 returnBulletToPool(bullet);
-                console.log("bullet hit test")
+                console.log("Bullet hit a player");
+                
                 broadcast({
                     type: 'bulletHit',
                     bulletId
-
                 });
                 return;
             }
-        });
+        }
     });
     bulletsToRemove.forEach(bulletId => activeBullets.delete(bulletId));
 }
@@ -644,6 +643,49 @@ function broadcastBarrels() {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({ type: 'updateBarrels', barrels: barrelData }));
         }
+    });
+}
+
+function updatePlayer(id, data) {
+    const player = players.get(id);
+    if (player) {
+        player.x = data.x;
+        player.y = data.y;
+        player.angle = data.angle;
+        player.color = data.color;
+        player.borderColor = data.borderColor;
+        player.barrelLength = data.barrelLength;
+        player.barrelWidth = data.barrelWidth;
+        player.barrelColor = data.barrelColor;
+        player.barrelBorderColor = data.barrelBorderColor;
+        player.radius = data.radius;
+        player.playerName = data.playerName;
+    }
+}
+
+function broadcastPlayerUpdate(id, data) {
+    const player = players.get(id);
+    broadcast({
+        type: 'playerUpdate',
+        id,
+        x: player.x,
+        y: player.y,
+        color: player.color,
+        angle: player.angle,
+        borderColor: player.borderColor,
+        barrelLength: player.barrelLength,
+        barrelWidth: player.barrelWidth,
+        barrelColor: player.barrelColor,
+        barrelBorderColor: player.barrelBorderColor,
+        radius: player.radius
+    });
+}
+
+function broadcastPlayerJoin(id, playerName) {
+    broadcast({
+        type: 'playerJoin',
+        id,
+        playerName
     });
 }
 
@@ -680,6 +722,7 @@ wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         const data = JSON.parse(message);
         if (data.type === 'initializePlayer') {
+            /*
             const player = players.get(id);
             if (player) {
                 //Object.assign(player, data);
@@ -716,7 +759,13 @@ wss.on('connection', (ws) => {
                 id: id,
                 playerName: playerName
             });
+            */
+            updatePlayer(id, data);
+            broadcastPlayerUpdate(id, data);
+            broadcastPlayerJoin(id, data.playerName);
+
         } else if (data.type === 'updatePosition') {
+            /*
             const player = players.get(id);
             if (player) {
                 player.x = data.x;
@@ -745,6 +794,10 @@ wss.on('connection', (ws) => {
                 barrelBorderColor: player.barrelBorderColor,
                 radius: player.radius
             });
+            */
+            updatePlayer(id, data);
+            broadcastPlayerUpdate(id, data);
+
         } else if (data.type === 'shoot') {
             let bullet = getBulletFromPool();
             if (!bullet) {
