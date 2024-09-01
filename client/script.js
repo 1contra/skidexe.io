@@ -271,7 +271,7 @@ function connectWebSocket() {
         return;
     }
 
-    const ws = new WebSocket('ws://localhost:3000/game');
+    const ws = new WebSocket('ws://localhost:3000');
 
     ws.onopen = () => {
         console.log('Connected to WebSocket server');

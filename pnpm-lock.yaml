@@ -20,6 +20,9 @@ importers:
       express-session:
         specifier: ^1.18.0
         version: 1.18.0
+      uws:
+        specifier: ^200.0.0
+        version: 200.0.0
       ws:
         specifier: ^8.18.0
         version: 8.18.0
@@ -481,8 +484,8 @@ packages:
   picocolors@1.0.1:
     resolution: {integrity: sha512-anP1Z8qwhkbmu7MFP5iTt+wQKXgwzf7zTyGlcdzabySa9vd0Xt392U0rVmz9poOaBj0uHJKyyo9/upk0HrEQew==}
 
-  postcss@8.4.41:
-    resolution: {integrity: sha512-TesUflQ0WKZqAvg52PWL6kHgLKP6xB6heTOdoYM0Wt2UHyxNa4K25EZZMgKns3BH1RLVbZCREPpLY0rhnNoHVQ==}
+  postcss@8.4.42:
+    resolution: {integrity: sha512-hywKUQB9Ra4dR1mGhldy5Aj1X3MWDSIA1cEi+Uy0CjheLvP6Ual5RlwMCh8i/X121yEDLDIKBsrCQ8ba3FDMfQ==}
     engines: {node: ^10 || ^12 || >=14}
 
   proxy-addr@2.0.7:
@@ -570,6 +573,9 @@ packages:
   utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
+
+  uws@200.0.0:
+    resolution: {integrity: sha512-A2j/p+tJBHZ2MtRoMjVqXMzstpyiZkHcV+XzLQ021h63aqHt5P6l0QkR87L0OASvesjMG42Qo97uyEmPB98+3g==}
 
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
@@ -1006,7 +1012,7 @@ snapshots:
 
   picocolors@1.0.1: {}
 
-  postcss@8.4.41:
+  postcss@8.4.42:
     dependencies:
       nanoid: 3.3.7
       picocolors: 1.0.1
@@ -1128,12 +1134,14 @@ snapshots:
 
   utils-merge@1.0.1: {}
 
+  uws@200.0.0: {}
+
   vary@1.1.2: {}
 
   vite@5.4.2:
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.4.41
+      postcss: 8.4.42
       rollup: 4.21.2
     optionalDependencies:
       fsevents: 2.3.3
