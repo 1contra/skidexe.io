@@ -507,7 +507,10 @@ function drawPolygon(ctx, polygon) {
 
     ctx.restore();
 
+
     if (polygon.health <= .1) return;
+
+    if (polygon.health >= baseHealthValues[sidesIndex]) return;
 
     const barWidth = polygon.radius * 1.5;
     const barHeight = 6;
