@@ -689,6 +689,15 @@ function broadcastPlayerJoin(id, playerName) {
     });
 }
 
+function updateBullet(data) {
+    const existingBullet = activeBullets.get(data.id);
+    if (existingBullet) {
+        Object.assign(existingBullet, data);
+    } else {
+        activeBullets.set(data.id, { ...data, lifetime: 0 });
+    }
+}
+
 wss.on('connection', (ws) => {
     const id = Date.now();
     //let playerName = Player${id}; // Use player ID or another method to assign a name
@@ -849,7 +858,7 @@ wss.on('connection', (ws) => {
         } 
 
         else if (data.type === 'bulletUpdate') {
-
+            /*
             const existingBullet = bullets.find(b => b.id === data.id);
 
             if (existingBullet) {
@@ -876,6 +885,8 @@ wss.on('connection', (ws) => {
                     lifetime: 0
                 });
             }
+            */
+            updateBullet(data);
         }
     });
     ws.on('close', () => {
