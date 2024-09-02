@@ -5,7 +5,8 @@ const https = require('https');
 const WebSocket = require('ws');
 const app = express();
 const config = require('./config');
-port = config.port;
+const fs = require('fs');
+
 
 const players = new Map();
 const BULLET_POOL_SIZE = 10000;
@@ -15,6 +16,7 @@ const barrels = new Map();
 let mapSize = 3000;
 let gridSize = 50; 
 
+port = config.port;
 let server;
 
 if (config.isHosting) {
