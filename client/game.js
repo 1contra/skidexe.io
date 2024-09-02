@@ -941,7 +941,7 @@ export function startGame() {
     
                         if (polygon.health <= 0) {
                             if (bullet.ownerId === player.id) {
-                                player.score += polygon.score;
+                                //player.score += polygon.score;
                                 //polygon.isFading = true;
                                 console.log("Polygon destroyed. Player's new score:", player.score);
     

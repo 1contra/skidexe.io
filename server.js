@@ -676,7 +676,7 @@ function isColliding(bullet, player) {
     return distance < collisionRadius;
 }
 
-function updateBullets(player) {
+function updateBullets() {
     const bulletsToRemove = [];
     activeBullets.forEach((bullet, bulletId) => {
         bullet.x += bullet.speedX;
@@ -695,17 +695,18 @@ function updateBullets(player) {
                 break;
             }
         }
-
+        
         if (hitPolygon) {
-            if (hitPolygon.health > 0) {
-                
-                hitPolygon.takeDamage(10);
+            const player = players.get(bullet.ownerId);
+            if (!player) return;  // If player not found, exit early
 
-                if (hitPolygon.opacity <= 0) {
-                    console.log("polygon hit")
-                    //const player = [...players.values()].find(p => p.id === bullet.ownerId);
-                    
-                    //player.score += hitPolygon.score;
+            if (hitPolygon.health > 0) {
+                hitPolygon.takeDamage(10);
+    
+                //console.log(`Player ${player.id} scored ${hitPolygon.score} points! Total Score: ${player.score}`);
+    
+                if (bullet.ownerId === player.id) {
+                    player.score += hitPolygon.score;
                     console.log(`Player ${player.id} scored ${hitPolygon.score} points! Total Score: ${player.score}`);
                     
                     broadcast({
@@ -713,13 +714,19 @@ function updateBullets(player) {
                         playerId: player.id,
                         score: player.score
                     });
-
                 }
 
-                //console.log(`Bullet hit a shape ${hitPolygon}`);
+                broadcast({
+                    type: 'scoreUpdate',
+                    playerId: player.id,
+                    score: player.score
+                });
+
+
+                // Remove bullet after it hits the polygon
                 bulletsToRemove.push(bulletId);
                 returnBulletToPool(bullet);
-
+    
                 broadcast({
                     type: 'bulletHit',
                     bulletId,
@@ -922,6 +929,7 @@ wss.on('connection', (ws) => {
                 updatePlayer(id, data);
                 broadcastPlayerUpdate(id, data);
                 broadcastPlayerJoin(id, data.playerName);
+                console.log(`Player joined ${data.playerName}`)
                 break;
 
             case 'updatePosition':
@@ -945,6 +953,7 @@ wss.on('connection', (ws) => {
 
             case 'bulletUpdate':
                 updateBullet(data);
+                updateBullets(data);
                 break;
 
             case 'polygonHit':
