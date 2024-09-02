@@ -69,8 +69,10 @@ function generateUniqueId() {
     return '_' + Math.random().toString(36).substr(2, 9);
 }
 
+
+
 class Polygon {
-    constructor(x, y, sides, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+    constructor(x, y, sides, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant = 0) {
         console.log('Polygon constructor params:', { x, y, sides, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant });
         this.x = x;
         this.y = y;
@@ -323,15 +325,15 @@ const polygonTypes = [
 ];
 
 const radiantVal = {
-    triangle: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
-    square: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
-    pentagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
-    hexagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
-    heptagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
-    octagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
-    nonagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
-    decagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
-}
+    triangle: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
+    square: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
+    pentagon: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
+    hexagon: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
+    heptagon: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
+    octagon: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
+    nonagon: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
+    decagon: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
+};
 
 const polygonColors = {
     'triangle': '#FF443D',
@@ -411,25 +413,41 @@ const polygonRadius = {
 };
 
 function getRadiantLevel(type) {
-    const rarities = radiantVal[type];
-    if (!rarities) {
-        console.log("dumbass code broke")
-        return 0;
+    // Ensure the provided type is valid
+    const polygon = polygonTypes.find(p => p.type === type);
+    
+    if (!polygon) {
+        console.error("Error: Invalid type provided.");
+        return 0; // Return 0 as a default if type is invalid
     }
 
-    const totalRarity = rarities.reduce((sum, rarity) => sum + rarity, 0)
+    // Get the radiant values for the polygon type
+    const rarities = radiantVal[type];
+    
+    if (!rarities) {
+        console.error("Error: Radiant values not defined for type.");
+        return 0; // Return 0 as a default if radiant values are missing
+    }
 
+    // Calculate the total rarity
+    const totalRarity = rarities.reduce((sum, rarity) => sum + rarity, 0);
+    
+    // Generate a random number between 0 and totalRarity
     const random = Math.random() * totalRarity;
-
-    let accumulatesRarity = 0;
+    
+    let cumulativeRarity = 0;
+    
+    // Determine the radiant level based on the random value
     for (let i = 0; i < rarities.length; i++) {
-        accumulatesRarity += rarities[i];
-        if (random < accumulatesRarity) {
-            return i;
+        cumulativeRarity += rarities[i];
+        if (random < cumulativeRarity) {
+            return i; // Return the index corresponding to the radiant level
         }
     }
 
-    return rarities.length - 1;
+    // Fallback case if something goes wrong
+    console.warn("Warning: Fallback to radiant 0.");
+    return 0;
 }
 
 function getRandomPolygonType() {
@@ -460,7 +478,7 @@ function spawnPolygons(count) {
         const health = polygonHealth[type] || 100;
         const baseHealth = polygonBaseHealth[type] || 100;
         const score = polygonScore[type] || 10;
-        const radiant = getRadiantLevel(type) || 1;
+        const radiant = getRadiantLevel(type) || 0;
         const fadeDuration = 200;
         
         let polygon;

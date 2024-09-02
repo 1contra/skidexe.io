@@ -455,6 +455,20 @@ const polygonColors = {
     '10': '#09040a'
 };
 
+const oscillationSettings = {
+    0: { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0 },
+    1: { colorAdjustment: 20, oscillationRange: 0, oscillationSpeed: 0 },
+    2: { colorAdjustment: 40, oscillationRange: 1, oscillationSpeed: 0.001 },
+    3: { colorAdjustment: 60, oscillationRange: 1.2, oscillationSpeed: 0.002 },
+    4: { colorAdjustment: 100, oscillationRange: 1.4, oscillationSpeed: 0.003 },
+    5: { colorAdjustment: 150, oscillationRange: 1.6, oscillationSpeed: 0.004 },
+    6: { colorAdjustment: 200, oscillationRange: 1.8, oscillationSpeed: 0.005 },
+    7: { colorAdjustment: 250, oscillationRange: 2, oscillationSpeed: 0.006 },
+    8: { colorAdjustment: 300, oscillationRange: 2.2, oscillationSpeed: 0.007 },
+    9: { colorAdjustment: 350, oscillationRange: 2.4, oscillationSpeed: 0.008 },
+    10: { colorAdjustment: 400, oscillationRange: 4, oscillationSpeed: 0.01 },
+};
+
 function hexToRgb(hex) {
     // Ensure hex is a string and has the correct length
     if (typeof hex !== 'string' || (hex.length !== 4 && hex.length !== 7)) {
@@ -511,20 +525,78 @@ function darkenColor(color, factor = 0.7) {
 }
 
 function drawPolygon(ctx, polygon, timestamp) {
-
     ctx.save();
     ctx.translate(polygon.x, polygon.y);
     ctx.rotate(polygon.angle);
     const cornerRadius = polygon.radius * 0.2;
 
-    ctx.beginPath();
+
+    //ctx.beginPath();
     const angleStep = (2 * Math.PI) / polygon.sides;
     //const startAngle = 0;
     let prevX, prevY, firstX, firstY;
-
+    
     const sidesIndex = polygon.sides - 3; 
     polygon.baseHealth = baseHealthValues[sidesIndex] || 10;
 
+    // Parameters for the oscillating polygon
+    const oscillationRange = 1; // Range of oscillation (e.g., 0.2 = +/-20%)
+    const oscillationSpeed = .001; // Speed of oscillation (larger value = faster oscillation)
+    const borderWidth = 4; // Width of the border
+
+    if (oscillationRange > 0) {
+
+        ctx.save();
+
+        const baseColor = polygonColors[polygon.sides];
+
+        // Get the settings for the current radiant level
+        const settings = oscillationSettings[polygon.radiant] || { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0 };
+        const { colorAdjustment, oscillationRange, oscillationSpeed } = settings;
+
+       // Calculate oscillation size
+       const minSizeFactor = 1; // Minimum size is the original size
+       const maxSizeFactor = 1 + oscillationRange; // Maximum size increase factor
+       const sizeFactor = minSizeFactor + (maxSizeFactor - minSizeFactor) * (0.5 * (Math.sin(timestamp * oscillationSpeed) + 1)); // Oscillates between minSizeFactor and maxSizeFactor
+       const largerRadius = polygon.radius * sizeFactor;
+
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+
+        for (let i = 0; i < polygon.sides; i++) {
+            const startAngle = polygon.angle;
+            const angle = startAngle + i * angleStep;
+            const x = Math.cos(angle) * largerRadius;
+            const y = Math.sin(angle) * largerRadius;
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+                firstX = x;
+                firstY = y;
+            } else {
+                ctx.lineTo(x, y);
+            }
+
+            prevX = x;
+            prevY = y;
+        }
+        ctx.lineTo(firstX, firstY);
+        ctx.closePath();
+
+        // Use base color for the larger polygon
+        const color = adjustColor(baseColor, timestamp, 100, colorAdjustment); // Apply color adjustment
+        ctx.fillStyle = darkenColor(color, 0.5); // Slightly darker color for effect
+        ctx.fill();
+        // Draw the border for the oscillated polygon
+        ctx.strokeStyle = darkenColor(color, 0.7);
+        ctx.lineWidth = borderWidth;
+        ctx.stroke();
+
+        ctx.restore(); // Restore context to previous state
+    }
+
+    //ctx.save();
+    ctx.beginPath();
     for (let i = 0; i < polygon.sides; i++) {
         const startAngle = polygon.angle;
         const angle = startAngle + i * angleStep;
@@ -552,9 +624,51 @@ function drawPolygon(ctx, polygon, timestamp) {
         console.error('Unknown polygon shape:', polygon.shape);
         ctx.fillStyle = '#FFFFFF'; // Default to white if shape not found
     } else {
-        const color = adjustColor(baseColor, timestamp);
-        ctx.fillStyle = color;
-        ctx.strokeStyle = darkenColor(color, 0.7);
+        // Check if polygon.radiant is 0
+        if (polygon.radiant === 0) {
+            ctx.fillStyle = polygon.color; // Use the base color directly
+            ctx.strokeStyle = polygon.borderColor;
+        } else if (polygon.radiant === 1) {
+            const color = adjustColor(baseColor, timestamp, 20); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        } else if (polygon.radiant === 2) {
+            const color = adjustColor(baseColor, timestamp, 40); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        } else if (polygon.radiant === 3) {
+            const color = adjustColor(baseColor, timestamp, 60); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        } else if (polygon.radiant === 4) {
+            const color = adjustColor(baseColor, timestamp, 100); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        } else if (polygon.radiant === 5) {
+            const color = adjustColor(baseColor, timestamp, 150); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        } else if (polygon.radiant === 6) {
+            const color = adjustColor(baseColor, timestamp, 200); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        } else if (polygon.radiant === 7) {
+            const color = adjustColor(baseColor, timestamp, 250); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        } else if (polygon.radiant === 8) {
+            const color = adjustColor(baseColor, timestamp, 300); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        } else if (polygon.radiant === 9) {
+            const color = adjustColor(baseColor, timestamp, 350); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        } else if (polygon.radiant === 10) {
+            const color = adjustColor(baseColor, timestamp, 400); // Apply color adjustment
+            ctx.fillStyle = color;
+            ctx.strokeStyle = darkenColor(color, 0.7);
+        }
     }
 
     //ctx.fillStyle = color;
@@ -566,7 +680,19 @@ function drawPolygon(ctx, polygon, timestamp) {
     ctx.stroke();
     ctx.restore();
 
-    if (polygon.health <= .1) return;
+    /*
+    ctx.save();
+    ctx.translate(polygon.x, polygon.y);
+    ctx.rotate(polygon.angle);
+    ctx.font = '12px Arial'; // Set font style
+    ctx.fillStyle = 'red'; // Set text color
+    ctx.textAlign = 'center'; // Center align text
+    ctx.textBaseline = 'middle'; // Middle align text
+    ctx.fillText(`Radiant: ${polygon.radiant}`, 0, 0); // Draw text
+    ctx.restore();
+    */
+
+    if (polygon.health <= 0) return;
 
     if (polygon.health >= baseHealthValues[sidesIndex]) return;
 
