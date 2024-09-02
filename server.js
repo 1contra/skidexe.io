@@ -785,7 +785,7 @@ function updatePlayer(id, data) {
     }
 }
 
-function broadcastPlayerUpdate(id, data) {
+function broadcastPlayerUpdate(id) {
     const player = players.get(id);
     broadcast({
         type: 'playerUpdate',
@@ -899,7 +899,7 @@ wss.on('connection', (ws) => {
         barrelBorderColor: '#6e6e6e',
         radius: 15,
         playerName: `Player ${id}`,
-        id: '1',
+        id: id,
         score: 0,
     };
     const defaultBarrel = {
@@ -1040,7 +1040,7 @@ server.listen(port, config.host, () => {
         updateBullets();
         updatePolygons();
         broadcastPolygonUpdates(wss);
-        //console.log('Players:', Array.from(players.values()));
+        console.log('Players:', Array.from(players.values()));
 
     }, 1000 / 120)
 

@@ -187,18 +187,6 @@ function startGame() {
         changelog.style.display = 'none';
         connectWebSocket();
         gameLoop();
-
-
-
-
-
-
-
-
-
-
-
-
     } else {
         gameStart = true;
         player.name = `Player_${randomNumber}`;
@@ -271,16 +259,16 @@ let isConnected = false;
 
 function connectWebSocket() {
     
-
-    const ws = new WebSocket('ws://localhost:3000');
-
     if (isConnected) {
-        ws.close();
+        //ws.close();
         console.log('WebSocket connection already established.');
         //return;
     }
+    
+    const ws = new WebSocket('ws://localhost:3000');
 
     ws.onopen = () => {
+        //if (isConnected) return;
         console.log('Connected to WebSocket server');
 
         if (gameStart) {
@@ -958,7 +946,9 @@ function updatePlayer() {
             barrelWidth: player.barrelWidth,
             barrelColor: player.barrelColor,
             barrelBorderColor: player.barrelBorderColor,
-            radius: player.radius
+            radius: player.radius,
+            score: player.score,
+
         }));
     } else {
         console.warn('WebSocket is not open. Message not sent.');
