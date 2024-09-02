@@ -108,3 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
 startButton.addEventListener('click', () => {
     startGame(); // Call the function imported from game.js
 });
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    clearCanvas();
+    //drawPlayer();
+});

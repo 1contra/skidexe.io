@@ -967,7 +967,7 @@ wss.on('connection', (ws) => {
 
         let playerName = player.playerName;
 
-        console.log(`Player name: ${playerName}`);
+        console.log(`Player name left: ${playerName}`);
 
         broadcast({
 
@@ -1040,7 +1040,7 @@ server.listen(port, config.host, () => {
         updateBullets();
         updatePolygons();
         broadcastPolygonUpdates(wss);
-        console.log('Players:', Array.from(players.values()));
+        //console.log('Players:', Array.from(players.values()));
 
     }, 1000 / 120)
 
