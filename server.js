@@ -169,7 +169,7 @@ class Polygon {
     
             this.health -= damagePerFrame;
             damageApplied += damagePerFrame;
-        }, 1000 / 60); 
+        }, 1000 / 120); 
     
         this.lastDamageTime = Date.now();
     }
@@ -369,14 +369,14 @@ const polygonSpeed = {
 };
 
 const polygonHealth = {
-    'triangle': 10,
-    'square': 20,
-    'pentagon': 50,
-    'hexagon': 100,
-    'heptagon': 200,
-    'octagon': 1000,
-    'nonagon': 2000,
-    'decagon': 3000
+    'triangle': 9,
+    'square': 19,
+    'pentagon': 49,
+    'hexagon': 99,
+    'heptagon': 199,
+    'octagon': 999,
+    'nonagon': 1999,
+    'decagon': 2999
 };
 
 const polygonBaseHealth = {
@@ -425,6 +425,24 @@ const radiantScoreMultipliers = {
     9: 512,
     10: 1024
 };
+
+function addScorePlayer(bulletId, score) {
+    const bullet = activeBullets.get(bulletId);
+    if (!bullet) return;  // If bullet not found, exit early
+
+    const player = players.get(bullet.ownerId);
+    if (!player) return;  // If player not found, exit early
+
+    player.score = (player.score || 0) + score;
+    console.log(`Player ${player.id} scored ${score} points! Total Score: ${player.score}`);
+
+    // Optionally, broadcast the score update to other players
+    broadcast({
+        type: 'scoreUpdate',
+        playerId: player.id,
+        score: player.score
+    });
+}
 
 function getRadiantLevel(type) {
     // Ensure the provided type is valid
@@ -676,6 +694,8 @@ function isColliding(bullet, player) {
     return distance < collisionRadius;
 }
 
+const scoreAddedMap = new Map(); // To track score addition status
+
 function updateBullets() {
     const bulletsToRemove = [];
     activeBullets.forEach((bullet, bulletId) => {
@@ -702,36 +722,22 @@ function updateBullets() {
 
             if (hitPolygon.health > 0) {
                 hitPolygon.takeDamage(10);
-    
-                //console.log(`Player ${player.id} scored ${hitPolygon.score} points! Total Score: ${player.score}`);
-    
-                if (bullet.ownerId === player.id) {
-                    player.score += hitPolygon.score;
-                    console.log(`Player ${player.id} scored ${hitPolygon.score} points! Total Score: ${player.score}`);
+
+                if (hitPolygon.isFading) return;
+
+                if (hitPolygon.health < .1) {
+                   addScorePlayer(bulletId, hitPolygon.score);
+
                     
                     broadcast({
-                        type: 'scoreUpdate',
-                        playerId: player.id,
-                        score: player.score
+                        type: 'bulletHit',
+                        bulletId,
+                        polygonId: hitPolygon.id
                     });
                 }
-
-                broadcast({
-                    type: 'scoreUpdate',
-                    playerId: player.id,
-                    score: player.score
-                });
-
-
                 // Remove bullet after it hits the polygon
                 bulletsToRemove.push(bulletId);
                 returnBulletToPool(bullet);
-    
-                broadcast({
-                    type: 'bulletHit',
-                    bulletId,
-                    polygonId: hitPolygon.id
-                });
             }
             return;
         }
@@ -835,6 +841,7 @@ function handlePolygonHit(data) {
     // Find player and update their score
     const player = players.get(playerId);
     if (player) {
+        /*
         player.score += score;
         console.log(`Player ${playerId} scored ${score}. New score: ${player.score}`);
         
@@ -844,6 +851,7 @@ function handlePolygonHit(data) {
             playerId,
             score: player.score
         });
+        */
     } else {
         console.log(`Player ${playerId} not found.`);
     }

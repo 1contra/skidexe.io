@@ -407,7 +407,7 @@ export function startGame() {
         });
     }
     
-    const baseHealthValues = [10, 20, 50, 100, 200, 1000, 2000, 3000];
+    const baseHealthValues = [9, 19, 9, 99, 199, 999, 1999, 2999];
     
     const polygonColors = {
         '3': '#FF443D',
@@ -421,17 +421,17 @@ export function startGame() {
     };
     
     const oscillationSettings = {
-        0: { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0 },
-        1: { colorAdjustment: 20, oscillationRange: 0, oscillationSpeed: 0 },
-        2: { colorAdjustment: 40, oscillationRange: 1, oscillationSpeed: 0.001 },
-        3: { colorAdjustment: 60, oscillationRange: 1.2, oscillationSpeed: 0.002 },
-        4: { colorAdjustment: 100, oscillationRange: 1.4, oscillationSpeed: 0.003 },
-        5: { colorAdjustment: 150, oscillationRange: 1.6, oscillationSpeed: 0.004 },
-        6: { colorAdjustment: 200, oscillationRange: 1.8, oscillationSpeed: 0.005 },
-        7: { colorAdjustment: 250, oscillationRange: 2, oscillationSpeed: 0.006 },
-        8: { colorAdjustment: 300, oscillationRange: 2.2, oscillationSpeed: 0.007 },
-        9: { colorAdjustment: 350, oscillationRange: 2.4, oscillationSpeed: 0.008 },
-        10: { colorAdjustment: 400, oscillationRange: 4, oscillationSpeed: 0.01 },
+        0: { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
+        1: { colorAdjustment: 20, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
+        2: { colorAdjustment: 40, oscillationRange: 1, oscillationSpeed: 0.001, tpLevel: 0.2 },
+        3: { colorAdjustment: 60, oscillationRange: 1.2, oscillationSpeed: 0.002, tpLevel: 0.3 },
+        4: { colorAdjustment: 100, oscillationRange: 1.4, oscillationSpeed: 0.003, tpLevel: 0.4 },
+        5: { colorAdjustment: 150, oscillationRange: 1.6, oscillationSpeed: 0.004, tpLevel: 0.5 },
+        6: { colorAdjustment: 200, oscillationRange: 1.8, oscillationSpeed: 0.005, tpLevel: 0.6 },
+        7: { colorAdjustment: 250, oscillationRange: 2, oscillationSpeed: 0.006, tpLevel: 0.7 },
+        8: { colorAdjustment: 300, oscillationRange: 2.2, oscillationSpeed: 0.007, tpLevel: 0.8 },
+        9: { colorAdjustment: 350, oscillationRange: 2.4, oscillationSpeed: 0.008, tpLevel: 0.9},
+        10: { colorAdjustment: 400, oscillationRange: 4, oscillationSpeed: 0.01, tpLevel: 1 },
     };
     
     function hexToRgb(hex) {
@@ -488,6 +488,21 @@ export function startGame() {
         const b = Math.max(Math.floor(rgb[2] * factor), 0);
         return `rgb(${r}, ${g}, ${b})`;
     }
+
+    function brightenColor(color, factor = 1.3) {
+        // Extract the RGB values from the color string
+        const rgb = color.match(/\d+/g).map(Number);
+        
+        // Ensure factor is greater than 1 to brighten
+        factor = Math.max(factor, 1.0);
+    
+        // Calculate the brighter color
+        const r = Math.min(Math.floor(rgb[0] * factor), 255);
+        const g = Math.min(Math.floor(rgb[1] * factor), 255);
+        const b = Math.min(Math.floor(rgb[2] * factor), 255);
+        
+        return `rgb(${r}, ${g}, ${b})`;
+    }
     
     function drawPolygon(ctx, polygon, timestamp) {
         ctx.save();
@@ -517,7 +532,7 @@ export function startGame() {
     
             // Get the settings for the current radiant level
             const settings = oscillationSettings[polygon.radiant] || { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0 };
-            const { colorAdjustment, oscillationRange, oscillationSpeed } = settings;
+            const { colorAdjustment, oscillationRange, oscillationSpeed, tpLevel } = settings;
     
             // Calculate oscillation size
             const minSizeFactor = 1; // Minimum size is the original size
@@ -525,7 +540,7 @@ export function startGame() {
             const sizeFactor = minSizeFactor + (maxSizeFactor - minSizeFactor) * (0.5 * (Math.sin(timestamp * oscillationSpeed) + 1)); // Oscillates between minSizeFactor and maxSizeFactor
             const largerRadius = polygon.radius * sizeFactor;
     
-            ctx.globalAlpha = 0.3;
+            ctx.globalAlpha = tpLevel;
             ctx.beginPath();
     
             for (let i = 0; i < polygon.sides; i++) {
