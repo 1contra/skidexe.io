@@ -1,32 +1,20 @@
 const express = require('express');
-
 const path = require('path');
-
 const http = require('http');
-
 const WebSocket = require('ws');
-
 const app = express();
-
 const config = require('./config');
 
-port = 3000;
+port = config.port;
 const server = http.createServer(app);
-
 const wss = new WebSocket.Server({ server });
 const wssFFA = new WebSocket.Server({ noServer: true });
 const wssTDM = new WebSocket.Server({ noServer: true });
-
 const players = new Map();
-
 const BULLET_POOL_SIZE = 10000;
-
 const bulletPool = [];
-
 const activeBullets = new Map();
-
 const barrels = new Map();
-
 let mapSize = 3000;
 let gridSize = 50; 
 
@@ -1019,8 +1007,8 @@ server.on('upgrade', (request, socket, head) => {
 });
 */
 
-server.listen(port, '127.0.0.1', () => {
-    console.log(`Server running at http://127.0.0.1:${port}`);
+server.listen(port, config.host, () => {
+    console.log(`Server running at ${config.host}:${port}`);
     setInterval(() => {
 
         updateBullets();

@@ -48,27 +48,6 @@ const bulletSettings = {
     maxLifetime: 3000
 };
 
-async function loadConfig() {
-    try {
-        const response = await fetch('/api/config');
-        const config = await response.json();
-
-        console.log('Server HTTP URL:', config.server.http);
-        console.log('WebSocket Server URL:', config.server.wss);
-
-        const socket = new WebSocket(config.server.wss);
-
-        socket.onopen = () => {
-            console.log('WebSocket connection established');
-        };
-
-    } catch (error) {
-        console.error('Error loading config:', error);
-    }
-}
-
-loadConfig();
-
 document.addEventListener('DOMContentLoaded', () => {
     const exitMenu = document.getElementById('exitMenu');
     const resumeBtn = document.getElementById('resumeBtn');
