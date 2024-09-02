@@ -8,8 +8,6 @@ const exitMenu = document.getElementById('exitMenu');
 const resumeBtn = document.getElementById('resumeBtn');
 const leaveBtn = document.getElementById('leaveBtn');
 
-const mapSize = 3000;
-const gridSize = 50; 
 const messages = [];
 let gameStart = false;
 canvas.width = window.innerWidth;
@@ -22,6 +20,9 @@ const bulletSpeed = 3;
 const playerBarrels = new Map();
 const barrels = [];
 const polygons = []
+
+let mapSize = 3000;
+let gridSize = 50;
 
 const keys = {
     w: false,
@@ -46,7 +47,6 @@ const bulletSettings = {
     speed: 3,
     maxLifetime: 3000
 };
-
 
 async function loadConfig() {
     try {
@@ -140,6 +140,7 @@ function drawMessages() {
         }
     });
 }
+
 const player = {
     x: mapSize / 2,
     y: mapSize / 2,
@@ -1036,7 +1037,7 @@ function gameLoop(timestamp) {
         updateBullets();
         drawOtherPlayers();
         drawPlayer();
-        drawMessages();
+        drawMessages(); 
     }
     requestAnimationFrame(gameLoop);
 }

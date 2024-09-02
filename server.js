@@ -1,24 +1,39 @@
 const express = require('express');
+
 const path = require('path');
+
 const http = require('http');
+
 const WebSocket = require('ws');
+
 const app = express();
+
 const config = require('./config');
 
 port = 3000;
 const server = http.createServer(app);
+
 const wss = new WebSocket.Server({ server });
+const wssFFA = new WebSocket.Server({ noServer: true });
+const wssTDM = new WebSocket.Server({ noServer: true });
+
 const players = new Map();
+
 const BULLET_POOL_SIZE = 10000;
+
 const bulletPool = [];
+
 const activeBullets = new Map();
+
 const barrels = new Map();
-const mapSize = 3000;
+
+let mapSize = 3000;
+let gridSize = 50; 
 
 const servers = [
-    { id: 1, name: 'FFA' },
-    //{ id: 2, name: '2 TDM' },
-    //{ id: 3, name: '4 TDM' },
+    { id: 1, name: 'FFA', address: '127.0.0.1', port: 3000, mode: 'ffa' },
+    { id: 2, name: '2 TDM', address: '127.0.0.1', port: 3001, mode: '2tdm' },
+    //{ id: 3, name: '4 TDM', address: 'localhost', port: 3000, mode: '4tdm' }
 ];
 
 app.use(express.static(path.join(config.staticDir)));
@@ -29,6 +44,10 @@ app.get('/api/servers', (req, res) => {
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(config.staticDir, 'index.html'));
+});
+
+app.get('/api/map-info', (req, res) => {
+    res.json({ mapSize, gridSize });
 });
 
 //not in use
@@ -79,6 +98,7 @@ class Polygon {
             if (this.opacity <= 0) {
 
                 this.opacity = 0;
+                spawnPolygon()
                 return true;
             }
 
@@ -124,17 +144,13 @@ class Polygon {
         const frames = 30;
         const damagePerFrame = amount / frames;
         let damageApplied = 0;
-    
+
         const interval = setInterval(() => {
             if (damageApplied >= amount || this.health <= 0) {
                 this.health = Math.max(this.health, 0);
                 clearInterval(interval);
-                if (this.health <= .1) {
+                if (this.health <= 0) {
                     this.startFading();
-                    if (this.opacity == 0) {
-                        spawnPolygon();
-                    }
-                    
                 }
                 return;
             }
@@ -595,7 +611,7 @@ function updateBullets() {
                     }
                 }
 
-                console.log(`Bullet hit a shape ${hitPolygon}`);
+                //console.log(`Bullet hit a shape ${hitPolygon}`);
                 bulletsToRemove.push(bulletId);
                 returnBulletToPool(bullet);
 
@@ -696,6 +712,45 @@ function updateBullet(data) {
     } else {
         activeBullets.set(data.id, { ...data, lifetime: 0 });
     }
+}
+
+function handleShoot(data) {
+    let bullet = getBulletFromPool() || createNewBullet(data);
+    const bulletId = generateUniqueId();
+    activeBullets.set(bulletId, bullet);
+    if (!bullet) {
+        bullet = {
+            x: data.x,
+            y: data.y,
+            speedX: data.speedX,
+            speedY: data.speedY,
+            ownerId: data.ownerId,
+            color: data.color,
+            active: true
+        };
+    } else {
+        bullet.x = data.x;
+        bullet.y = data.y;
+        bullet.speedX = data.speedX;
+        bullet.speedY = data.speedY;
+        bullet.ownerId = data.ownerId;
+        bullet.color = data.color;
+        bullet.active = true;
+    }
+    broadcast({
+        type: 'bulletUpdate',
+        id: bulletId,
+        x: bullet.x,
+        y: bullet.y,
+        speedX: bullet.speedX,
+        speedY: bullet.speedY,
+        ownerId: bullet.ownerId,
+        color: bullet.color
+    });
+}
+
+function generateUniqueId() {
+    return 'id-' + Math.random().toString(36).substr(2, 9);
 }
 
 wss.on('connection', (ws) => {
@@ -808,6 +863,7 @@ wss.on('connection', (ws) => {
             broadcastPlayerUpdate(id, data);
 
         } else if (data.type === 'shoot') {
+            /*
             let bullet = getBulletFromPool();
             if (!bullet) {
                 bullet = {
@@ -840,6 +896,8 @@ wss.on('connection', (ws) => {
                 ownerId: bullet.ownerId,
                 color: bullet.color
             });
+            */
+            handleShoot(data);
         } 
 
         //messed up
@@ -933,6 +991,7 @@ wss.on('connection', (ws) => {
 
 });
 
+
 function broadcast(data) {
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
@@ -940,6 +999,25 @@ function broadcast(data) {
         }
     });
 }
+
+/*
+// Upgrade HTTP server to WebSocket server for specific paths
+server.on('upgrade', (request, socket, head) => {
+    const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
+
+    if (pathname === '/ffa') {
+        wssFFA.handleUpgrade(request, socket, head, (ws) => {
+            wssFFA.emit('connection', ws, request);
+        });
+    } else if (pathname === '/tdm') {
+        wssTDM.handleUpgrade(request, socket, head, (ws) => {
+            wssTDM.emit('connection', ws, request);
+        });
+    } else {
+        socket.destroy(); // Close connection if path is unknown
+    }
+});
+*/
 
 server.listen(port, '127.0.0.1', () => {
     console.log(`Server running at http://127.0.0.1:${port}`);
