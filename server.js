@@ -1,15 +1,12 @@
 const express = require('express');
 const path = require('path');
 const http = require('http');
+const https = require('https');
 const WebSocket = require('ws');
 const app = express();
 const config = require('./config');
-
 port = config.port;
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-const wssFFA = new WebSocket.Server({ noServer: true });
-const wssTDM = new WebSocket.Server({ noServer: true });
+
 const players = new Map();
 const BULLET_POOL_SIZE = 10000;
 const bulletPool = [];
@@ -17,6 +14,27 @@ const activeBullets = new Map();
 const barrels = new Map();
 let mapSize = 3000;
 let gridSize = 50; 
+
+let server;
+
+if (config.isHosting) {
+  if (!config.key || !config.cert) {
+    throw new Error('SSL keyFile and certFile must be specified when isHosting is true');
+  }
+
+  const options = {
+    key: fs.readFileSync(config.key),
+    cert: fs.readFileSync(config.cert)
+  };
+
+  server = https.createServer(options, app);
+} else {
+  server = http.createServer(app);
+}
+
+const wss = new WebSocket.Server({ server });
+const wssFFA = new WebSocket.Server({ noServer: true });
+const wssTDM = new WebSocket.Server({ noServer: true });
 
 const servers = [
     { id: 1, name: 'FFA', address: '127.0.0.1', port: 3000, mode: 'ffa' },

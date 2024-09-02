@@ -11,7 +11,6 @@ const config = {
     cert: path.resolve(__dirname, 'cert.pem'),
     staticDir: path.join(__dirname, isDevelopment ? 'client/' : 'client/dist'),
     useHttps: false,
-    domain: '',
     isHosting: false,
     
 };
