@@ -70,7 +70,8 @@ function generateUniqueId() {
 }
 
 class Polygon {
-    constructor(x, y, sides, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score) {
+    constructor(x, y, sides, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+        console.log('Polygon constructor params:', { x, y, sides, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant });
         this.x = x;
         this.y = y;
         this.sides = sides;
@@ -83,6 +84,7 @@ class Polygon {
         this.rotationAngle = 0;
         //this.rotationSpeed = 0.02; // Speed of rotation
         this.health = health;
+        this.radiant = radiant;
         this.baseHealth = baseHealth;
         this.opacity = 1.0;
         this.fadeDuration = 350;
@@ -192,10 +194,31 @@ class Polygon {
             }
         }
         context.closePath();
-        context.fillStyle = this.color;
+
+        const fadeColor = this.RadiantVFX(this.color, this.radiant);
+        context.fillStyle = fadeColor;
         context.globalAlpha = this.opacity;
         context.fill();
         context.globalAlpha = 1.0; // Reset alpha
+    }
+
+    RadiantVFX(color, radiant) {
+        if (radiant > 0) {
+            const x = Math.min(1, radiant / 10);
+            const [r, g, b] = this.hexToRgb(color)
+            const rDark = Math.floor(r * (1 - factor))
+            const gDark = Math.floor(g * (1 - factor))
+            const bDark = Math.floor(b * (1 - factor))
+            return `rgb(${rDark}, ${gDark}, ${bDark})`
+        }
+        return color;
+    }
+    
+    hexToRgb(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(7, 7), 16);
+        return [r, g, b];
     }
 
     drawHitbox(context) {
@@ -229,50 +252,50 @@ class Polygon {
 }
 
 class Triangle extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score) {
-        super(x, y, 3, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+        super(x, y, 3, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
     }
 }
 
 class Square extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score) {
-        super(x, y, 4, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+        super(x, y, 4, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
     }
 }
 
 class Pentagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score) {
-        super(x, y, 5, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+        super(x, y, 5, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
     }
 }
 
 class Hexagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score) {
-        super(x, y, 6, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+        super(x, y, 6, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
     }
 }
 
 class Heptagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score) {
-        super(x, y, 7, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+        super(x, y, 7, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
     }
 }
 
 class Octagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score) {
-        super(x, y, 8, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+        super(x, y, 8, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
     }
 }
 
 class Nanogon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score) {
-        super(x, y, 9, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+        super(x, y, 9, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
     }
 }
 
 class Decagon extends Polygon {
-    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score) {
-        super(x, y, 10, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score);
+    constructor(x, y, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant) {
+        super(x, y, 10, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
     }
 }
 
@@ -298,6 +321,17 @@ const polygonTypes = [
     { type: 'nonagon', rarity: 0.02 },
     { type: 'decagon', rarity: 0.01 }
 ];
+
+const radiantVal = {
+    triangle: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
+    square: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
+    pentagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
+    hexagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
+    heptagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
+    octagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
+    nonagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
+    decagon: [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 1],
+}
 
 const polygonColors = {
     'triangle': '#FF443D',
@@ -376,6 +410,28 @@ const polygonRadius = {
     'decagon': 1000
 };
 
+function getRadiantLevel(type) {
+    const rarities = radiantVal[type];
+    if (!rarities) {
+        console.log("dumbass code broke")
+        return 0;
+    }
+
+    const totalRarity = rarities.reduce((sum, rarity) => sum + rarity, 0)
+
+    const random = Math.random() * totalRarity;
+
+    let accumulatesRarity = 0;
+    for (let i = 0; i < rarities.length; i++) {
+        accumulatesRarity += rarities[i];
+        if (random < accumulatesRarity) {
+            return i;
+        }
+    }
+
+    return rarities.length - 1;
+}
+
 function getRandomPolygonType() {
     const totalRarity = polygonTypes.reduce((sum, polygon) => sum + polygon.rarity, 0);
     const random = Math.random() * totalRarity;
@@ -404,55 +460,57 @@ function spawnPolygons(count) {
         const health = polygonHealth[type] || 100;
         const baseHealth = polygonBaseHealth[type] || 100;
         const score = polygonScore[type] || 10;
+        const radiant = getRadiantLevel(type) || 1;
+        const fadeDuration = 200;
         
         let polygon;
         switch (type) {
             case 'triangle':
-                polygon = new Triangle(x, y, radius, color, borderColor, speed, health, baseHealth, score);
+                polygon = new Triangle(x, y, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
                 console.log('Spawning Polygon:', {
-                    x, y, radius, type, color, borderColor, speed, health, baseHealth, score
+                    x, y, radius, type, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant
                 });
                 break;
             case 'square':
-                polygon = new Square(x, y, radius, color, borderColor, speed, health, baseHealth, score);
+                polygon = new Square(x, y, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
                 console.log('Spawning Polygon:', {
-                    x, y, radius, type, color, borderColor, speed, health, baseHealth, score
+                    x, y, radius, type, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant
                 });
                 break;
             case 'pentagon':
-                polygon = new Pentagon(x, y, radius, color, borderColor, speed, health, baseHealth, score);
+                polygon = new Pentagon(x, y, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
                 console.log('Spawning Polygon:', {
-                    x, y, radius, type, color, borderColor, speed, health, baseHealth, score
+                    x, y, radius, type, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant
                 });
                 break;
             case 'hexagon':
-                polygon = new Hexagon(x, y, radius, color, borderColor, speed, health, baseHealth, score);
+                polygon = new Hexagon(x, y, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
                 console.log('Spawning Polygon:', {
-                    x, y, radius, type, color, borderColor, speed, health, baseHealth, score
+                    x, y, radius, type, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant
                 });
                 break;
             case 'heptagon':
-                polygon = new Heptagon(x, y, radius, color, borderColor, speed, health, baseHealth, score);
+                polygon = new Heptagon(x, y, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
                 console.log('Spawning Polygon:', {
-                    x, y, radius, type, color, borderColor, speed, health, baseHealth, score
+                    x, y, radius, type, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant
                 });
                 break;
             case 'octagon':
-                polygon = new Octagon(x, y, radius, color, borderColor, speed, health, baseHealth, score);
+                polygon = new Octagon(x, y, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
                 console.log('Spawning Polygon:', {
-                    x, y, radius, type, color, borderColor, speed, health, baseHealth, score
+                    x, y, radius, type, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant
                 });
                 break;
             case 'nonagon':
-                polygon = new Nanogon(x, y, radius, color, borderColor, speed, health, baseHealth, score),
+                polygon = new Nanogon(x, y, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
                 console.log('Spawning Polygon:', {
-                    x, y, radius, type, color, borderColor, speed, health, baseHealth, score
+                    x, y, radius, type, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant
                 });
                 break;
             case 'decagon':
-                polygon = new Decagon(x, y, radius, color, borderColor, speed, health, baseHealth, score);
+                polygon = new Decagon(x, y, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
                 console.log('Spawning Polygon:', {
-                    x, y, radius, type, color, borderColor, speed, health, baseHealth, score
+                    x, y, radius, type, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant
                 });
                 break;
             default:
@@ -497,9 +555,12 @@ function broadcastPolygonUpdates(wss) {
         borderColor: polygon.borderColor,
         speed: polygon.speed,
         health: polygon.health,
+        radiant: polygon.radiant,
         opacity: polygon.opacity,
         isFading: polygon.isFading,
         baseHealth: polygon.baseHealth,
+        
+        
     }));
 
     wss.clients.forEach(client => {

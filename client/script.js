@@ -401,7 +401,8 @@ function connectWebSocket() {
                     opacity: polygon.opacity,
                     isFading: polygon.isFading,
                     baseHealth: polygon.baseHealth,
-                    score: polygon.score,
+                    radiant: polygon.radiant,
+
 
                 });
 
@@ -430,12 +431,12 @@ const ws = connectWebSocket();
 
 
 
-function drawPolygons(ctx) {
+function drawPolygons(ctx, timestamp) {
     polygons.forEach(polygon => {
 
         ctx.save();
         ctx.translate(canvas.width / 2 - player.x, canvas.height / 2 - player.y);
-        drawPolygon(ctx, polygon);
+        drawPolygon(ctx, polygon, timestamp);
         ctx.restore();
 
     });
@@ -443,7 +444,73 @@ function drawPolygons(ctx) {
 
 const baseHealthValues = [10, 20, 50, 100, 200, 1000, 2000, 3000];
 
-function drawPolygon(ctx, polygon) {
+const polygonColors = {
+    '3': '#FF443D',
+    '4': '#ffed4a',
+    '5': '#2b99ff',
+    '6': '#3F51B5',
+    '7': '#ff80ab',
+    '8': '#00dbc7',
+    '9': '#7affba',
+    '10': '#09040a'
+};
+
+function hexToRgb(hex) {
+    // Ensure hex is a string and has the correct length
+    if (typeof hex !== 'string' || (hex.length !== 4 && hex.length !== 7)) {
+        throw new Error('Invalid hex color format');
+    }
+
+    // Remove the leading '#' if it's present
+    if (hex[0] === '#') {
+        hex = hex.slice(1);
+    }
+
+    let r = 0, g = 0, b = 0;
+
+    // 3 digits
+    if (hex.length === 3) {
+        r = parseInt(hex[0] + hex[0], 16);
+        g = parseInt(hex[1] + hex[1], 16);
+        b = parseInt(hex[2] + hex[2], 16);
+    }
+    // 6 digits
+    else if (hex.length === 6) {
+        r = parseInt(hex[0] + hex[1], 16);
+        g = parseInt(hex[2] + hex[3], 16);
+        b = parseInt(hex[4] + hex[5], 16);
+    }
+
+    return [r, g, b];
+}
+
+function adjustColor(baseColor, timestamp, range = 50) {
+    try {
+        const [baseR, baseG, baseB] = hexToRgb(baseColor);
+
+        // Create variations in the range of the base color
+        const r = Math.min(255, Math.max(0, baseR + Math.sin(timestamp * 0.001) * range));
+        const g = Math.min(255, Math.max(0, baseG + Math.sin(timestamp * 0.002) * range));
+        const b = Math.min(255, Math.max(0, baseB + Math.sin(timestamp * 0.003) * range));
+
+        return `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
+    } catch (e) {
+        console.error('Error adjusting color:', e);
+        return baseColor; // Fallback to base color if there's an error
+    }
+}
+
+function darkenColor(color, factor = 0.7) {
+    // Extract the RGB values from the color string
+    const rgb = color.match(/\d+/g).map(Number);
+    // Calculate the darker color
+    const r = Math.max(Math.floor(rgb[0] * factor), 0);
+    const g = Math.max(Math.floor(rgb[1] * factor), 0);
+    const b = Math.max(Math.floor(rgb[2] * factor), 0);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+function drawPolygon(ctx, polygon, timestamp) {
 
     ctx.save();
     ctx.translate(polygon.x, polygon.y);
@@ -478,15 +545,26 @@ function drawPolygon(ctx, polygon) {
 
     ctx.lineTo(firstX, firstY);
     ctx.closePath();
-    ctx.fillStyle = polygon.color;
+
+    // Use base color for the polygon
+    const baseColor = polygonColors[polygon.sides];
+    if (!baseColor) {
+        console.error('Unknown polygon shape:', polygon.shape);
+        ctx.fillStyle = '#FFFFFF'; // Default to white if shape not found
+    } else {
+        const color = adjustColor(baseColor, timestamp);
+        ctx.fillStyle = color;
+        ctx.strokeStyle = darkenColor(color, 0.7);
+    }
+
+    //ctx.fillStyle = color;
     ctx.globalAlpha = polygon.opacity;
     ctx.fill();
-    ctx.strokeStyle = polygon.borderColor;
-    ctx.lineWidth = 4;
+
+    //ctx.strokeStyle = darkenColor(color, 0.7)
+    ctx.lineWidth = 4
     ctx.stroke();
-
     ctx.restore();
-
 
     if (polygon.health <= .1) return;
 
@@ -1010,13 +1088,14 @@ function gameLoop(timestamp) {
         drawOutOfBounds();
         drawMapArea();
         drawGrid();
-        drawPolygons(ctx);
+        drawPolygons(ctx, timestamp);
         drawBullets();
         updatePlayer();
         updateBullets();
         drawOtherPlayers();
         drawPlayer();
         drawMessages(); 
+
     }
     requestAnimationFrame(gameLoop);
 }
