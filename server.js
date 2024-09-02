@@ -412,6 +412,20 @@ const polygonRadius = {
     'decagon': 1000
 };
 
+const radiantScoreMultipliers = {
+    0: 1,
+    1: 2,
+    2: 4,
+    3: 8,
+    4: 16,
+    5: 32,
+    6: 64,
+    7: 128,
+    8: 256,
+    9: 512,
+    10: 1024
+};
+
 function getRadiantLevel(type) {
     // Ensure the provided type is valid
     const polygon = polygonTypes.find(p => p.type === type);
@@ -477,8 +491,11 @@ function spawnPolygons(count) {
         const speed = polygonSpeed[type] || 1;
         const health = polygonHealth[type] || 100;
         const baseHealth = polygonBaseHealth[type] || 100;
-        const score = polygonScore[type] || 10;
         const radiant = getRadiantLevel(type) || 0;
+        const baseScore = polygonScore[type] || 0;
+        const scoreMultiplier = radiantScoreMultipliers[radiant] || 0;
+        const score = baseScore * scoreMultiplier;
+        
         const fadeDuration = 200;
         
         let polygon;
@@ -659,7 +676,7 @@ function isColliding(bullet, player) {
     return distance < collisionRadius;
 }
 
-function updateBullets() {
+function updateBullets(player) {
     const bulletsToRemove = [];
     activeBullets.forEach((bullet, bulletId) => {
         bullet.x += bullet.speedX;
@@ -681,21 +698,22 @@ function updateBullets() {
 
         if (hitPolygon) {
             if (hitPolygon.health > 0) {
+                
                 hitPolygon.takeDamage(10);
 
-                if (hitPolygon.health <= 0) {
-                    const player = [...players.values()].find(p => p.id === bullet.ownerId);
+                if (hitPolygon.opacity <= 0) {
+                    console.log("polygon hit")
+                    //const player = [...players.values()].find(p => p.id === bullet.ownerId);
                     
-                    if (player) {
-                        player.score += hitPolygon.score;
-                        console.log(`Player ${player.id} scored ${hitPolygon.score} points! Total Score: ${player.score}`);
-                        
-                        broadcast({
-                            type: 'scoreUpdate',
-                            playerId: player.id,
-                            score: player.score
-                        });
-                    }
+                    //player.score += hitPolygon.score;
+                    console.log(`Player ${player.id} scored ${hitPolygon.score} points! Total Score: ${player.score}`);
+                    
+                    broadcast({
+                        type: 'scoreUpdate',
+                        playerId: player.id,
+                        score: player.score
+                    });
+
                 }
 
                 //console.log(`Bullet hit a shape ${hitPolygon}`);
@@ -763,6 +781,7 @@ function updatePlayer(id, data) {
         player.barrelBorderColor = data.barrelBorderColor;
         player.radius = data.radius;
         player.playerName = data.playerName;
+        player.score = data.score;
     }
 }
 
@@ -780,7 +799,8 @@ function broadcastPlayerUpdate(id, data) {
         barrelWidth: player.barrelWidth,
         barrelColor: player.barrelColor,
         barrelBorderColor: player.barrelBorderColor,
-        radius: player.radius
+        radius: player.radius,
+        score: player.score,
     });
 }
 
@@ -799,6 +819,29 @@ function updateBullet(data) {
     } else {
         activeBullets.set(data.id, { ...data, lifetime: 0 });
     }
+}
+
+// Function to handle polygon hit
+function handlePolygonHit(data) {
+    const { playerId, bulletId, polygonId, score } = data;
+
+    // Find player and update their score
+    const player = players.get(playerId);
+    if (player) {
+        player.score += score;
+        console.log(`Player ${playerId} scored ${score}. New score: ${player.score}`);
+        
+        // Optionally broadcast updated player score to all clients
+        broadcast({
+            type: 'scoreUpdate',
+            playerId,
+            score: player.score
+        });
+    } else {
+        console.log(`Player ${playerId} not found.`);
+    }
+
+    // Here you can handle additional logic if needed, e.g., updating polygon status
 }
 
 function handleShoot(data) {
@@ -855,8 +898,9 @@ wss.on('connection', (ws) => {
         barrelColor: '#8f8f8f',
         barrelBorderColor: '#6e6e6e',
         radius: 15,
-        playerName: "player",
-        id: '1'
+        playerName: `Player ${id}`,
+        id: '1',
+        score: 0,
     };
     const defaultBarrel = {
         id,
@@ -872,166 +916,49 @@ wss.on('connection', (ws) => {
     barrels.set(id, { ...defaultBarrel });
     ws.on('message', (message) => {
         const data = JSON.parse(message);
-        if (data.type === 'initializePlayer') {
-            /*
-            const player = players.get(id);
-            if (player) {
-                //Object.assign(player, data);
-                player.x = data.x;
-                player.y = data.y;
-                player.angle = data.angle;
-                player.color = data.color;
-                player.borderColor = data.borderColor;
-                player.barrelLength = data.barrelLength;
-                player.barrelWidth = data.barrelWidth;
-                player.barrelColor = data.barrelColor;
-                player.barrelBorderColor = data.barrelBorderColor;
-                player.radius = data.radius;
-                player.playerName = data.playerName;
-            }
-            let playerName = player.playerName;
-            broadcast({
-                type: 'playerUpdate',
-                id,
-                x: player.x,
-                y: player.y,
-                angle: player.angle,
-                color: player.color,
-                borderColor: player.borderColor,
-                barrelLength: player.barrelLength,
-                barrelWidth: player.barrelWidth,
-                barrelColor: player.barrelColor,
-                barrelBorderColor: player.barrelBorderColor,
-                radius: player.radius,
-                playerName: playerName,
-            });
-            broadcast({
-                type: 'playerJoin',
-                id: id,
-                playerName: playerName
-            });
-            */
-            updatePlayer(id, data);
-            broadcastPlayerUpdate(id, data);
-            broadcastPlayerJoin(id, data.playerName);
 
-        } else if (data.type === 'updatePosition') {
-            /*
-            const player = players.get(id);
-            if (player) {
-                player.x = data.x;
-                player.y = data.y;
-                player.angle = data.angle;
-                player.color = data.color;
-                player.borderColor = data.borderColor;
-                player.barrelLength = data.barrelLength;
-                player.barrelWidth = data.barrelWidth;
-                player.barrelColor = data.barrelColor;
-                player.barrelBorderColor = data.barrelBorderColor;
-                player.radius = data.radius;
-                player.playerName = data.playerName;
-            }
-            broadcast({
-                type: 'playerUpdate',
-                id,
-                x: player.x,
-                y: player.y,
-                color: player.color,
-                angle: player.angle,
-                borderColor: player.borderColor,
-                barrelLength: player.barrelLength,
-                barrelWidth: player.barrelWidth,
-                barrelColor: player.barrelColor,
-                barrelBorderColor: player.barrelBorderColor,
-                radius: player.radius
-            });
-            */
-            updatePlayer(id, data);
-            broadcastPlayerUpdate(id, data);
+        switch (data.type) {
+            case 'initializePlayer':
+                updatePlayer(id, data);
+                broadcastPlayerUpdate(id, data);
+                broadcastPlayerJoin(id, data.playerName);
+                break;
 
-        } else if (data.type === 'shoot') {
-            /*
-            let bullet = getBulletFromPool();
-            if (!bullet) {
-                bullet = {
-                    x: data.x,
-                    y: data.y,
-                    speedX: data.speedX,
-                    speedY: data.speedY,
-                    ownerId: data.ownerId,
-                    color: data.color,
-                    active: true
-                };
-            } else {
-                bullet.x = data.x;
-                bullet.y = data.y;
-                bullet.speedX = data.speedX;
-                bullet.speedY = data.speedY;
-                bullet.ownerId = data.ownerId;
-                bullet.color = data.color;
-                bullet.active = true;
-            }
-            const bulletId = Date.now();
-            activeBullets.set(bulletId, bullet);
-            broadcast({
-                type: 'bulletUpdate',
-                id: bulletId,
-                x: bullet.x,
-                y: bullet.y,
-                speedX: bullet.speedX,
-                speedY: bullet.speedY,
-                ownerId: bullet.ownerId,
-                color: bullet.color
-            });
-            */
-            handleShoot(data);
-        } 
+            case 'updatePosition':
+                updatePlayer(id, data);
+                broadcastPlayerUpdate(id, data);
+                break;
 
-        //messed up
-        else if (data.type === 'updateBarrel') {
+            case 'shoot':
+                handleShoot(data);
+                break;
 
-            const barrel = data;
+            case 'updateBarrel':
+                const barrel = data;
+                if (barrels.has(barrel.id)) {
+                    Object.assign(barrels.get(barrel.id), barrel);
+                } else {
+                    barrels.set(barrel.id, barrel);
+                }
+                broadcastBarrels();
+                break;
 
-            if (barrel) {
-                Object.assign(barrel, data);
-            } else {
-                barrels.push(data);
-            }
+            case 'bulletUpdate':
+                updateBullet(data);
+                break;
 
-            broadcastBarrels();
+            case 'polygonHit':
+                handlePolygonHit(data);
+                break;
 
-        } 
+            case 'updateScore':
+                // Handle updating player score here
+                updatePlayer(id, { score: data.score });
+                broadcastPlayerUpdate(id, players.get(id));
+                break;
 
-        else if (data.type === 'bulletUpdate') {
-            /*
-            const existingBullet = bullets.find(b => b.id === data.id);
-
-            if (existingBullet) {
-
-                existingBullet.x = data.x;
-                existingBullet.y = data.y;
-                existingBullet.speedX = data.speedX;
-                existingBullet.speedY = data.speedY;
-                existingBullet.ownerId = data.ownerId;
-                existingBullet.color = data.color;
-                existingBullet.lifetime = 0;
-            } 
-
-            else {
-
-                bullets.push({
-                    id: data.id,
-                    x: data.x,
-                    y: data.y,
-                    speedX: data.speedX,
-                    speedY: data.speedY,
-                    ownerId: data.ownerId,
-                    color: data.color,
-                    lifetime: 0
-                });
-            }
-            */
-            updateBullet(data);
+            default:
+                console.log(`Unknown message type: ${data.type}`);
         }
     });
     ws.on('close', () => {
@@ -1113,6 +1040,7 @@ server.listen(port, config.host, () => {
         updateBullets();
         updatePolygons();
         broadcastPolygonUpdates(wss);
+        //console.log('Players:', Array.from(players.values()));
 
     }, 1000 / 120)
 

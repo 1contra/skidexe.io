@@ -99,10 +99,7 @@ function addMessage(text) {
     });
 }
 
-function updateScoreDisplay() {
-    const scoreElement = document.getElementById('score');
-    scoreElement.textContent = `Score: ${player.score}`;
-}
+
 
 function drawMessages() {
     if (!gameStart) return;
@@ -140,7 +137,6 @@ const player = {
     angle: 0,
     score: 0,
     name: "",
-    score: 0,
     get hitbox() {
         const totalRadius = this.radius + this.borderWidth;
         return {
@@ -163,6 +159,22 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
+function updateScoreDisplay() {
+    const scoreElement = document.getElementById('scoreDisplay');
+    scoreElement.textContent = `Score: ${player.score}`;
+
+    // Send the updated score to the server
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            type: 'updateScore',
+            score: player.score
+        }));
+    } else {
+        console.error('WebSocket connection is not open.');
+    }
+
+}
+
 let randomNumber = getRandomInt(1, 1000);
 
 function startGame() {
@@ -175,6 +187,18 @@ function startGame() {
         changelog.style.display = 'none';
         connectWebSocket();
         gameLoop();
+
+
+
+
+
+
+
+
+
+
+
+
     } else {
         gameStart = true;
         player.name = `Player_${randomNumber}`;
@@ -246,12 +270,15 @@ function handleWebSocketMessage(event) {
 let isConnected = false;
 
 function connectWebSocket() {
-    if (isConnected) {
-        console.log('WebSocket connection already established.');
-        return;
-    }
+    
 
     const ws = new WebSocket('ws://localhost:3000');
+
+    if (isConnected) {
+        ws.close();
+        console.log('WebSocket connection already established.');
+        //return;
+    }
 
     ws.onopen = () => {
         console.log('Connected to WebSocket server');
@@ -270,7 +297,8 @@ function connectWebSocket() {
                 barrelColor: player.barrelColor,
                 barrelBorderColor: player.barrelBorderColor,
                 radius: player.radius,
-                playerName: player.name
+                playerName: player.name,
+                score: player.score,
 
             }));
 
@@ -321,7 +349,8 @@ function connectWebSocket() {
                     barrelWidth: data.barrelWidth,
                     barrelColor: data.barrelColor,
                     barrelBorderColor: data.barrelBorderColor,
-                    radius: data.radius
+                    radius: data.radius,
+                    score: player.score,
                 });
 
                 playerBarrels.set(data.id, {
@@ -375,7 +404,7 @@ function connectWebSocket() {
             const { playerId, score } = data;
     
             if (playerId === player.id) {
-                player.score = score;
+                player.score += score;
                 updateScoreDisplay();
             }
         }
@@ -427,9 +456,7 @@ function connectWebSocket() {
     return ws;
 }
 
-const ws = connectWebSocket();
-
-
+const ws = connectWebSocket(); 
 
 function drawPolygons(ctx, timestamp) {
     polygons.forEach(polygon => {
@@ -940,6 +967,7 @@ function updatePlayer() {
 
 function updateBullets() {
     //if (!gameStart) return;
+    const hitPolygons = new Set();
     bullets.forEach((bullet, index) => {
         if (typeof bullet !== 'object' || bullet === null) {
             //console.error(`Unexpected data type in bullets array at index ${index}:`, bullet);
@@ -967,7 +995,31 @@ function updateBullets() {
         }
 
         polygons.forEach(polygon => {
-            if (checkBulletPolygonCollision(bullet, polygon)) {
+            if (checkBulletPolygonCollision(bullet, polygon) && !hitPolygons.has(polygon)) {
+
+                    hitPolygons.add(polygon);
+
+                    if (polygon.health <= 0) {
+                        if (bullet.ownerId === player.id) {
+                            player.score += polygon.score;
+                            //polygon.isFading = true;
+                            console.log("Polygon destroyed. Player's new score:", player.score);
+
+                            // Broadcast collision to server
+                            const collisionData = {
+                                type: 'polygonHit',
+                                playerId: player.id,
+                                playerName: player.name,
+                                bulletId: bullet.id,
+                                polygonId: polygon.id,
+                                score: polygon.score
+                            };
+                            if (ws && ws.readyState === WebSocket.OPEN) {
+                                ws.send(JSON.stringify(collisionData));
+                            }
+                        }
+                    }
+
                 if (polygon.isFading) return;
                 bullets.splice(index, 1);
                 console.log("bullet hit polygon")
@@ -1051,7 +1103,7 @@ function shootBullet() {
         color: bulletSettings.color,
         borderWidth: bulletSettings.borderWidth
     };
-    ws.send(JSON.stringify(bullet));
+    //ws.send(JSON.stringify(bullet));
     ws.send(JSON.stringify({
         type: 'shoot',
         x: bullet.x,
@@ -1221,6 +1273,7 @@ function gameLoop(timestamp) {
         drawOtherPlayers();
         drawPlayer();
         drawMessages(); 
+        updateScoreDisplay();
 
     }
     requestAnimationFrame(gameLoop);
