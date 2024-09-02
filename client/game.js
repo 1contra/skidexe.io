@@ -564,8 +564,8 @@ export function startGame() {
             ctx.closePath();
     
             // Use base color for the larger polygon
-            const color = adjustColor(baseColor, timestamp, 100, colorAdjustment); // Apply color adjustment
-            ctx.fillStyle = darkenColor(color, 0.5); // Slightly darker color for effect
+            const color = adjustColor(baseColor, timestamp, colorAdjustment); // Apply color adjustment
+            ctx.fillStyle = brightenColor(color, 0.5); // Slightly darker color for effect
             ctx.fill();
             // Draw the border for the oscillated polygon
             ctx.strokeStyle = darkenColor(color, 0.7);
