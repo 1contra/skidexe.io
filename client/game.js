@@ -2,12 +2,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const menu = document.getElementById('menu');
 const changelog = document.getElementById('changelog')
-const startButton = document.getElementById('startButton');
 const playerNameInput = document.getElementById('playerName');
-const exitMenu = document.getElementById('exitMenu');
-const resumeBtn = document.getElementById('resumeBtn');
-const leaveBtn = document.getElementById('leaveBtn');
-
 const messages = [];
 export let gameStart = false;
 canvas.width = window.innerWidth;
@@ -16,7 +11,6 @@ const mapColor = '#f0f0f0';
 const outOfBoundsColor = '#808080';
 const bullets = [];
 const players = new Map();
-const bulletSpeed = 3;
 const playerBarrels = new Map();
 const barrels = [];
 const polygons = []
@@ -158,87 +152,19 @@ function setRandomPlayerPosition() {
     player.y = Math.random() * (mapSize - player.radius * 2) + player.radius;
 }
 
-// Function to update the player's radius based on the score
-function updatePlayerRadius(player) {
-    // Define a scale factor for radius increase per score point
-    const scaleFactor = 0.1; // Adjust this value as needed
-
-    // Update radius based on score
-    player.radius = 15 + player.score * scaleFactor;
-}
-
 setRandomPlayerPosition();
 
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-let randomNumber = getRandomInt(1, 1000);
-
-// Function to show the popup
-function showPopup() {
-    usernamePopup.classList.remove('hidden');
-}
-
-function generateRandomUsername() {
-    const randomNumber = Math.floor(Math.random() * 10000);
-    return `Player${randomNumber}`;
-}
-
 export function startGame() {
-
     const playerName = playerNameInput.value.trim() ||  generateRandomUsername();
-
-
     gameStart = true;
     player.name = playerName;
     menu.style.display = 'none';
     canvas.style.display = 'block';
     changelog.style.display = 'none';
-    //connectWebSocket();
-
     function updateScoreDisplay() {
         const scoreElement = document.getElementById('scoreDisplay');
         scoreElement.textContent = `Score: ${player.score}`;
-    
-        /*
-        // Send the updated score to the server
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-                type: 'updateScore',
-                score: player.score
-            }));
-        } else {
-            console.error('WebSocket connection is not open.');
-        }
-            */
-    
     }
-
-    /*
-    function updateLeaderboard() {
-        const leaderboardElement =document.getElementById('leaderboard');
-        const leaderboardList = domument.getElementById('leaderboard-list');
-    
-        if (gameStart) {
-            leaderboardElement.style.display = 'block';
-    
-            const players = getPlayers();
-            players.sort((a, b) => b.score - a.score);
-            const top = players.lastIndexOf(0, 10);
-    
-            leaderboardList.innerHTML = '';
-    
-            top.array.forEach(player => {
-                const listItem = document.createElement('li');
-                listItem.textContent = `${player.name}: ${player.score}`;
-                leaderboardList.appendChild(listItem);
-            });
-        } else {
-            leaderboardElement.style.display = 'none';
-        }
-    }
-    */
 
     chatInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
@@ -258,29 +184,17 @@ export function startGame() {
         }
     });
 
-    function handleWebSocketMessage(event) {
-        const message = JSON.parse(event.data);
-    
-        if (message.type === 'updateBarrels') {
-            barrels.length = 0;
-            barrels.push(...message.barrels);
-        }
-    }
-    
     let isConnected = false;
     
     function connectWebSocket() {
         
         if (isConnected) {
-            //ws.close();
             console.log('WebSocket connection already established.');
-            //return;
         }
         
         const ws = new WebSocket('ws://localhost:3000');
     
         ws.onopen = () => {
-            //if (isConnected) return;
             console.log('Connected to WebSocket server');
     
             if (gameStart) {
@@ -322,13 +236,10 @@ export function startGame() {
             }
 
             else if (data.type === 'playerData') {
-                // Update the Map with player data
                 data.players.forEach(player => {
                     leaderboardPlayers.set(player.id, player);
                 });
-
-                // Optionally, sort and slice to get the top 10 players
-                updateLeaderboard(); // Custom function to sort and update the leaderboard
+                updateLeaderboard();
             }
     
             else if (data.type === 'playerDisconnect') {
@@ -361,7 +272,7 @@ export function startGame() {
                         barrelWidth: data.barrelWidth,
                         barrelColor: data.barrelColor,
                         barrelBorderColor: data.barrelBorderColor,
-                        radius: 15 + data.score * 0.1, // Calculate the radius based on score
+                        radius: 15 + data.score * 0.1,
                         score: player.score,
                         playerName: player.name
                     });
@@ -463,18 +374,12 @@ export function startGame() {
 
             if (player) {
                 const playerName = player.playerName;
-                
-                // Remove the player from the game state
                 players.delete(id);
-
-                // Broadcast player leave event to all clients
                 broadcast({
                     type: 'playerLeave',
                     id,
                     playerName
                 });
-
-                // Optionally update the leaderboard
                 updateLeaderboard();
             }
         };
@@ -483,10 +388,7 @@ export function startGame() {
     }
 
     function handlePlayerLeave(id) {
-        // Remove player from leaderboardPlayers map
         leaderboardPlayers.delete(id);
-    
-        // Update and redraw the leaderboard
         updateLeaderboard();
     }
 
@@ -508,18 +410,14 @@ export function startGame() {
     const targetPositions = new Map();
 
     const x = canvas.width - 200;
-    const y = 20;          // Define y here so it's accessible in both functions
-    const lineHeight = 20; // Define lineHeight here so it's accessible in both functions
+    const y = 20;
+    const lineHeight = 20;
 
     function updateLeaderboard() {
         const playerArray = Array.from(leaderboardPlayers.values());
         playerArray.sort((a, b) => b.score - a.score);
-    
         const topPlayers = playerArray.slice(0, 10);
-        //console.log({topPlayers})
-        const spacing = 5; // Space between each rectangle
-        
-        // Update the target positions map
+        const spacing = 5;
         topPlayers.forEach((player, index) => {
             const newYPosition = y + (lineHeight + spacing) * (index + 1);
             if (!targetPositions.has(player.id)) {
@@ -538,60 +436,45 @@ export function startGame() {
 
             const playerArray = Array.from(leaderboardPlayers.values());
             playerArray.sort((a, b) => b.score - a.score);
-
             const x = canvas.width - 200;
-            //const y = 20;
             const lineHeight = 15;
             const fontSize = 30;
-            const lineWidth = 5; // Adjust this value for line thickness
-
+            const lineWidth = 5;
             ctx.font = `${fontSize}px Arial`;
             ctx.fillStyle = 'black';
             ctx.textAlign = 'left';
-
-            // Draw "Leaderboard" title with stylized text
-            ctx.lineWidth = 4; // Adjust this value for text border thickness
+            ctx.lineWidth = 4;
             ctx.strokeStyle = 'black';
             ctx.fillStyle = 'white';
             ctx.strokeText('LEADERBOARD', x - 40, y);
             ctx.fillText('LEADERBOARD', x - 40, y);
-
             const myId = player.id;
 
             Array.from(targetPositions.keys()).forEach((playerId) => {
                 const targetY = targetPositions.get(playerId);
                 const previousY = previousPositions.get(playerId) || targetY;
-                const playerY = previousY + (targetY - previousY) * 0.1; // Interpolate position
+                const playerY = previousY + (targetY - previousY) * 0.1;
                 const fontSize = 14;
                 ctx.font = `${fontSize}px Arial`;
-    
                 previousPositions.set(playerId, playerY);
-    
                 const player = leaderboardPlayers.get(playerId);
 
                 if (!player) {
-                    // Remove the player from targetPositions if they no longer exist
                     targetPositions.delete(playerId);
                     return;
                 }
 
                 const isMyself = player.id === myId;
-                    
                 ctx.fillStyle = isMyself ? '#00bbff' : '#ff2a1c';
                 ctx.strokeStyle = 'black';
                 ctx.lineWidth = lineWidth;
-    
-                // Draw background rectangle
                 ctx.beginPath();
                 ctx.roundRect(x - 20, playerY - lineHeight / 2 + 20, 200, lineHeight, 7);
                 ctx.stroke();
                 ctx.fill();
-
-                // Draw the player's tank
-                const tankX = x - 40; // Position tank to the left of the text
-                const tankY = playerY + lineHeight / 4 + 16; // Center tank vertically
+                const tankX = x - 40;
+                const tankY = playerY + lineHeight / 4 + 16;
                 drawTank(ctx, tankX, tankY, player, myId);
-    
                 const formattedScore = formatNumber(player.score);
                 ctx.fillStyle = 'black';
                 ctx.lineWidth = 4;
@@ -624,8 +507,6 @@ export function startGame() {
 
     function drawTank(ctx, centerX, centerY, player, myId) {
         const isMyself = player.id === myId;
-    
-        // Draw the player's barrel
         const barrel = {
             angle: player.barrelAngle || 0,
             length: player.barrelLength || 10,
@@ -635,15 +516,12 @@ export function startGame() {
         };
 
         ctx.fillStyle = isMyself ? '#00bbff' : '#ff2a1c';
-    
         const barrelEndX = centerX + Math.cos(barrel.angle) * barrel.length;
         const barrelEndY = centerY + Math.sin(barrel.angle) * barrel.length;
-    
         const angle = barrel.angle;
         const halfWidth = barrel.width / 2;
         const xOffset = Math.cos(angle + Math.PI / 2) * halfWidth;
         const yOffset = Math.sin(angle + Math.PI / 2) * halfWidth;
-    
         const x1 = centerX - xOffset;
         const y1 = centerY - yOffset;
         const x2 = barrelEndX - xOffset;
@@ -652,7 +530,6 @@ export function startGame() {
         const y3 = barrelEndY + yOffset;
         const x4 = centerX + xOffset;
         const y4 = centerY + yOffset;
-    
         ctx.strokeStyle = barrel.borderColor;
         ctx.lineWidth = barrel.width + 8;
         ctx.beginPath();
@@ -662,7 +539,6 @@ export function startGame() {
         ctx.lineTo(x4, y4);
         ctx.closePath();
         ctx.stroke();
-    
         ctx.strokeStyle = barrel.color;
         ctx.lineWidth = barrel.width;
         ctx.beginPath();
@@ -672,25 +548,21 @@ export function startGame() {
         ctx.lineTo(x4, y4);
         ctx.closePath();
         ctx.stroke();
-        
-        // Draw the player's tank circle
         ctx.fillStyle = isMyself ? '#00bbff' : '#ff2a1c';
         ctx.strokeStyle = isMyself ? '#007fad' : '#990900';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, player.radius || 7, 0, Math.PI * 2); // Default radius of 10 if undefined
+        ctx.arc(centerX, centerY, player.radius || 7, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
     }
     
     function drawPolygons(ctx, timestamp) {
         polygons.forEach(polygon => {
-    
             ctx.save();
             ctx.translate(canvas.width / 2 - player.x, canvas.height / 2 - player.y);
             drawPolygon(ctx, polygon, timestamp);
             ctx.restore();
-    
         });
     }
     
@@ -722,25 +594,22 @@ export function startGame() {
     };
     
     function hexToRgb(hex) {
-        // Ensure hex is a string and has the correct length
         if (typeof hex !== 'string' || (hex.length !== 4 && hex.length !== 7)) {
             throw new Error('Invalid hex color format');
         }
-    
-        // Remove the leading '#' if it's present
+
         if (hex[0] === '#') {
             hex = hex.slice(1);
         }
     
         let r = 0, g = 0, b = 0;
-    
-        // 3 digits
+
         if (hex.length === 3) {
             r = parseInt(hex[0] + hex[0], 16);
             g = parseInt(hex[1] + hex[1], 16);
             b = parseInt(hex[2] + hex[2], 16);
         }
-        // 6 digits
+
         else if (hex.length === 6) {
             r = parseInt(hex[0] + hex[1], 16);
             g = parseInt(hex[2] + hex[3], 16);
@@ -753,8 +622,6 @@ export function startGame() {
     function adjustColor(baseColor, timestamp, range = 50) {
         try {
             const [baseR, baseG, baseB] = hexToRgb(baseColor);
-    
-            // Create variations in the range of the base color
             const r = Math.min(255, Math.max(0, baseR + Math.sin(timestamp * 0.001) * range));
             const g = Math.min(255, Math.max(0, baseG + Math.sin(timestamp * 0.002) * range));
             const b = Math.min(255, Math.max(0, baseB + Math.sin(timestamp * 0.003) * range));
@@ -762,14 +629,12 @@ export function startGame() {
             return `rgb(${Math.floor(r)}, ${Math.floor(g)}, ${Math.floor(b)})`;
         } catch (e) {
             console.error('Error adjusting color:', e);
-            return baseColor; // Fallback to base color if there's an error
+            return baseColor;
         }
     }
     
     function darkenColor(color, factor = 0.7) {
-        // Extract the RGB values from the color string
         const rgb = color.match(/\d+/g).map(Number);
-        // Calculate the darker color
         const r = Math.max(Math.floor(rgb[0] * factor), 0);
         const g = Math.max(Math.floor(rgb[1] * factor), 0);
         const b = Math.max(Math.floor(rgb[2] * factor), 0);
@@ -777,13 +642,8 @@ export function startGame() {
     }
 
     function brightenColor(color, factor = 1.3) {
-        // Extract the RGB values from the color string
         const rgb = color.match(/\d+/g).map(Number);
-        
-        // Ensure factor is greater than 1 to brighten
         factor = Math.max(factor, 1.0);
-    
-        // Calculate the brighter color
         const r = Math.min(Math.floor(rgb[0] * factor), 255);
         const g = Math.min(Math.floor(rgb[1] * factor), 255);
         const b = Math.min(Math.floor(rgb[2] * factor), 255);
@@ -795,38 +655,22 @@ export function startGame() {
         ctx.save();
         ctx.translate(polygon.x, polygon.y);
         ctx.rotate(polygon.angle);
-        const cornerRadius = polygon.radius * 0.2;
-    
-    
-        //ctx.beginPath();
         const angleStep = (2 * Math.PI) / polygon.sides;
-        //const startAngle = 0;
         let prevX, prevY, firstX, firstY;
-        
         const sidesIndex = polygon.sides - 3; 
         polygon.baseHealth = baseHealthValues[sidesIndex] || 10;
-    
-        // Parameters for the oscillating polygon
-        const oscillationRange = 1; // Range of oscillation (e.g., 0.2 = +/-20%)
-        const oscillationSpeed = .001; // Speed of oscillation (larger value = faster oscillation)
-        const borderWidth = 4; // Width of the border
+        const oscillationRange = 1;
+        const borderWidth = 4;
     
         if (oscillationRange > 0) {
-    
             ctx.save();
-    
             const baseColor = polygonColors[polygon.sides];
-    
-            // Get the settings for the current radiant level
             const settings = oscillationSettings[polygon.radiant] || { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0 };
             const { colorAdjustment, oscillationRange, oscillationSpeed, tpLevel } = settings;
-    
-            // Calculate oscillation size
-            const minSizeFactor = 1; // Minimum size is the original size
-            const maxSizeFactor = 1 + oscillationRange; // Maximum size increase factor
-            const sizeFactor = minSizeFactor + (maxSizeFactor - minSizeFactor) * (0.5 * (Math.sin(timestamp * oscillationSpeed) + 1)); // Oscillates between minSizeFactor and maxSizeFactor
+            const minSizeFactor = 1; 
+            const maxSizeFactor = 1 + oscillationRange;
+            const sizeFactor = minSizeFactor + (maxSizeFactor - minSizeFactor) * (0.5 * (Math.sin(timestamp * oscillationSpeed) + 1));
             const largerRadius = polygon.radius * sizeFactor;
-    
             ctx.globalAlpha = tpLevel;
             ctx.beginPath();
     
@@ -847,22 +691,18 @@ export function startGame() {
                 prevX = x;
                 prevY = y;
             }
+
             ctx.lineTo(firstX, firstY);
             ctx.closePath();
-    
-            // Use base color for the larger polygon
-            const color = adjustColor(baseColor, timestamp, colorAdjustment); // Apply color adjustment
-            ctx.fillStyle = brightenColor(color, 0.5); // Slightly darker color for effect
+            const color = adjustColor(baseColor, timestamp, colorAdjustment);
+            ctx.fillStyle = brightenColor(color, 0.5);
             ctx.fill();
-            // Draw the border for the oscillated polygon
             ctx.strokeStyle = darkenColor(color, 0.7);
             ctx.lineWidth = borderWidth;
             ctx.stroke();
-    
-            ctx.restore(); // Restore context to previous state
+            ctx.restore();
         }
     
-        //ctx.save();
         ctx.beginPath();
         for (let i = 0; i < polygon.sides; i++) {
             const startAngle = polygon.angle;
@@ -884,105 +724,79 @@ export function startGame() {
     
         ctx.lineTo(firstX, firstY);
         ctx.closePath();
-    
-        // Use base color for the polygon
         const baseColor = polygonColors[polygon.sides];
+
         if (!baseColor) {
             console.error('Unknown polygon shape:', polygon.shape);
-            ctx.fillStyle = '#FFFFFF'; // Default to white if shape not found
+            ctx.fillStyle = '#FFFFFF';
         } else {
-            // Check if polygon.radiant is 0
             if (polygon.radiant === 0) {
-                ctx.fillStyle = polygon.color; // Use the base color directly
+                ctx.fillStyle = polygon.color;
                 ctx.strokeStyle = polygon.borderColor;
             } else if (polygon.radiant === 1) {
-                const color = adjustColor(baseColor, timestamp, 20); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 20);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 2) {
-                const color = adjustColor(baseColor, timestamp, 40); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 40);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 3) {
-                const color = adjustColor(baseColor, timestamp, 60); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 60);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 4) {
-                const color = adjustColor(baseColor, timestamp, 100); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 100);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 5) {
-                const color = adjustColor(baseColor, timestamp, 150); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 150);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 6) {
-                const color = adjustColor(baseColor, timestamp, 200); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 200);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 7) {
-                const color = adjustColor(baseColor, timestamp, 250); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 250);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 8) {
-                const color = adjustColor(baseColor, timestamp, 300); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 300);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 9) {
-                const color = adjustColor(baseColor, timestamp, 350); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 350);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 10) {
-                const color = adjustColor(baseColor, timestamp, 400); // Apply color adjustment
+                const color = adjustColor(baseColor, timestamp, 400);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             }
         }
     
-        //ctx.fillStyle = color;
         ctx.globalAlpha = polygon.opacity;
         ctx.fill();
-    
-        //ctx.strokeStyle = darkenColor(color, 0.7)
         ctx.lineWidth = 4
         ctx.stroke();
         ctx.restore();
-    
-        /*
-        ctx.save();
-        ctx.translate(polygon.x, polygon.y);
-        ctx.rotate(polygon.angle);
-        ctx.font = '12px Arial'; // Set font style
-        ctx.fillStyle = 'red'; // Set text color
-        ctx.textAlign = 'center'; // Center align text
-        ctx.textBaseline = 'middle'; // Middle align text
-        ctx.fillText(`Radiant: ${polygon.radiant}`, 0, 0); // Draw text
-        ctx.restore();
-        */
-    
         if (polygon.health <= 0) return;
-    
         if (polygon.health >= baseHealthValues[sidesIndex]) return;
-    
         const barWidth = polygon.radius * 1.5;
         const barHeight = 6;
         const healthPercentage = polygon.health / polygon.baseHealth;
-    
         const healthBarWidth = barWidth * 1;
         const healthBarHeight = barHeight * 1;
-    
         const healthBarX = polygon.x;
         const healthBarY = polygon.y + polygon.radius + barHeight + 10;
-    
         ctx.fillStyle = 'rgba(128, 128, 128, 0.5)';
         drawRoundedRect(healthBarX - barWidth / 2, healthBarY, barWidth, barHeight, 5);
         ctx.fill();
-    
         const HhealthBarX = polygon.x;
         const HhealthBarY = polygon.y + polygon.radius + barHeight + 10;
-    
         ctx.fillStyle = polygon.color
         drawRoundedRect(HhealthBarX - healthBarWidth / 2, HhealthBarY, healthBarWidth * healthPercentage, healthBarHeight, 3);
-    
         ctx.fill();
     
     }
@@ -1004,10 +818,8 @@ export function startGame() {
     function drawGrid() {
         ctx.strokeStyle = '#ddd';
         ctx.lineWidth = 2;
-    
         const startX = Math.floor((player.x - canvas.width / 2) / gridSize) * gridSize;
         const startY = Math.floor((player.y - canvas.height / 2) / gridSize) * gridSize;
-        
         const endX = startX + canvas.width;
         const endY = startY + canvas.height;
     
@@ -1030,15 +842,12 @@ export function startGame() {
         if (!gameStart) return;
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-    
         const barrelEndX = centerX + Math.cos(barrel.angle) * barrel.length;
         const barrelEndY = centerY + Math.sin(barrel.angle) * barrel.length;
-    
         const angle = barrel.angle;
         const halfWidth = barrel.width / 2;
         const xOffset = Math.cos(angle + Math.PI / 2) * halfWidth;
         const yOffset = Math.sin(angle + Math.PI / 2) * halfWidth;
-        
         const x1 = centerX - xOffset;
         const y1 = centerY - yOffset;
         const x2 = barrelEndX - xOffset;
@@ -1047,7 +856,6 @@ export function startGame() {
         const y3 = barrelEndY + yOffset;
         const x4 = centerX + xOffset;
         const y4 = centerY + yOffset;
-    
         ctx.strokeStyle = barrel.borderColor;
         ctx.lineWidth = barrel.width + 8;
         ctx.beginPath();
@@ -1057,7 +865,6 @@ export function startGame() {
         ctx.lineTo(x4, y4);
         ctx.closePath();
         ctx.stroke();
-    
         ctx.strokeStyle = barrel.color;
         ctx.lineWidth = barrel.width;
         ctx.beginPath();
@@ -1067,7 +874,6 @@ export function startGame() {
         ctx.lineTo(x4, y4);
         ctx.closePath();
         ctx.stroke();
-    
         ctx.fillStyle = player.color;
         ctx.strokeStyle = player.borderColor;
         ctx.lineWidth = 3;
@@ -1136,13 +942,11 @@ export function startGame() {
             const isOwnedBySelf = bullet.ownerId === player.id;
             const bulletColor = isOwnedBySelf ? bulletSettings.color : '#ff2a1c';
             const bulletBorderColor = isOwnedBySelf ? bulletSettings.borderColor : '#990900';
-    
             ctx.strokeStyle = bulletBorderColor;
             ctx.lineWidth = bulletSettings.borderWidth * 2;
             ctx.beginPath();
             ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, bulletSettings.radius + bulletSettings.borderWidth, 0, Math.PI * 2);
             ctx.stroke();
-    
             ctx.fillStyle = bulletColor;
             ctx.beginPath();
             ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, bulletSettings.radius, 0, Math.PI * 2);
@@ -1154,38 +958,29 @@ export function startGame() {
         if (!gameStart) return;
         let accelerationX = 0;
         let accelerationY = 0;
-        
         if (keys.w) accelerationY -= player.speed;
         if (keys.a) accelerationX -= player.speed;
         if (keys.s) accelerationY += player.speed;
         if (keys.d) accelerationX += player.speed;
-    
         const magnitude = Math.sqrt(accelerationX * accelerationX + accelerationY * accelerationY);
         if (magnitude > 0) {
             accelerationX /= magnitude;
             accelerationY /= magnitude;
         }
-    
         player.velocityX += accelerationX * player.speed;
         player.velocityY += accelerationY * player.speed;
         player.velocityX *= player.drag;
         player.velocityY *= player.drag;
-        
         if (Math.abs(player.velocityX) > player.maxSpeed) player.velocityX = player.maxSpeed * Math.sign(player.velocityX);
         if (Math.abs(player.velocityY) > player.maxSpeed) player.velocityY = player.maxSpeed * Math.sign(player.velocityY);
-    
         let newX = player.x + player.velocityX;
         let newY = player.y + player.velocityY;
-    
         newX = Math.max(player.radius, Math.min(mapSize - player.radius, newX));
         newY = Math.max(player.radius, Math.min(mapSize - player.radius, newY));
-        
         player.x += player.velocityX;
         player.y += player.velocityY;
-    
         player.x = newX;
         player.y = newY;
-    
         if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({
                 type: 'updatePosition',
@@ -1212,14 +1007,14 @@ export function startGame() {
         //if (!gameStart) return;
         const hitPolygons = new Set();
         bullets.forEach((bullet, index) => {
+
             if (typeof bullet !== 'object' || bullet === null) {
-                //console.error(`Unexpected data type in bullets array at index ${index}:`, bullet);
                 return;
             }
             bullet.x += bullet.speedX;
             bullet.y += bullet.speedY;
             bullet.lifetime += 16.67;
-    
+
             if (bullet.x < 0 || bullet.x > mapSize || bullet.y < 0 || bullet.y > mapSize || bullet.lifetime > bulletSettings.maxLifetime) {
                 bullets.splice(index, 1);
                 return;
@@ -1239,16 +1034,10 @@ export function startGame() {
     
             polygons.forEach(polygon => {
                 if (checkBulletPolygonCollision(bullet, polygon) && !hitPolygons.has(polygon)) {
-    
                         hitPolygons.add(polygon);
-    
                         if (polygon.health <= 0) {
                             if (bullet.ownerId === player.id) {
-                                //player.score += polygon.score;
-                                //polygon.isFading = true;
                                 console.log("Polygon destroyed. Player's new score:", player.score);
-    
-                                // Broadcast collision to server
                                 const collisionData = {
                                     type: 'polygonHit',
                                     playerId: player.id,
@@ -1275,7 +1064,6 @@ export function startGame() {
                     const playerDx = p.x - bullet.x;
                     const playerDy = p.y - bullet.y;
                     const playerDistance = Math.sqrt(playerDx * playerDx + playerDy * playerDy);
-    
                     if (playerDistance < 15 + bulletSettings.radius) {
                         bullets.splice(index, 1);
                         console.log("bullet hit player")
@@ -1292,7 +1080,6 @@ export function startGame() {
         if (bullet.x < boundingBox.minX || bullet.x > boundingBox.maxX || bullet.y < boundingBox.minY || bullet.y > boundingBox.maxY) {
             return false;
         }
-    
         return isPointInPolygon(bullet.x, bullet.y, getPolygonVertices(polygon));
     }
     
@@ -1302,7 +1089,6 @@ export function startGame() {
         const maxX = Math.max(...vertices.map(v => v.x));
         const minY = Math.min(...vertices.map(v => v.y));
         const maxY = Math.max(...vertices.map(v => v.y));
-        
         return { minX, maxX, minY, maxY };
     }
     
@@ -1318,7 +1104,6 @@ export function startGame() {
                 y: y + radius * Math.sin(angle)
             });
         }
-    
         return vertices;
     }
     
@@ -1347,7 +1132,6 @@ export function startGame() {
             borderWidth: bulletSettings.borderWidth,
             damage: bulletSettings.damage,
         };
-        //ws.send(JSON.stringify(bullet));
         ws.send(JSON.stringify({
             type: 'shoot',
             x: bullet.x,
@@ -1364,10 +1148,7 @@ export function startGame() {
     function drawOtherPlayers() {
         players.forEach((p, id) => {
             if (id !== player.id) {
-                
-                //for ffa hard code enemy tank colors
                 ctx.fillStyle = '#ff2a1c';
-                //console.log({p})
                 ctx.strokeStyle = '#990900';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
@@ -1393,15 +1174,12 @@ export function startGame() {
     
                 const centerX = p.x - player.x + canvas.width / 2;
                 const centerY = p.y - player.y + canvas.height / 2;
-    
                 const barrelEndX = centerX + Math.cos(barrel.angle) * barrel.length;
                 const barrelEndY = centerY + Math.sin(barrel.angle) * barrel.length;
-    
                 const angle = barrel.angle;
                 const halfWidth = barrel.width / 2;
                 const xOffset = Math.cos(angle + Math.PI / 2) * halfWidth;
                 const yOffset = Math.sin(angle + Math.PI / 2) * halfWidth;
-    
                 const x1 = centerX - xOffset;
                 const y1 = centerY - yOffset;
                 const x2 = barrelEndX - xOffset;
@@ -1410,7 +1188,6 @@ export function startGame() {
                 const y3 = barrelEndY + yOffset;
                 const x4 = centerX + xOffset;
                 const y4 = centerY + yOffset;
-    
                 ctx.strokeStyle = barrel.borderColor;
                 ctx.lineWidth = barrel.width + 8;
                 ctx.beginPath();
@@ -1420,7 +1197,6 @@ export function startGame() {
                 ctx.lineTo(x4, y4);
                 ctx.closePath();
                 ctx.stroke();
-    
                 ctx.strokeStyle = barrel.color;
                 ctx.lineWidth = barrel.width;
                 ctx.beginPath();
@@ -1478,12 +1254,10 @@ export function startGame() {
     const fps = 120;
     const frameInterval = 1000 / fps;
     const fpsDisplay = document.getElementById('fps');
-    const msDisplay = document.getElementById('ms');
     const displayUpdateInterval = 500;
     let lastTime = 0;
     let frameCount = 0;
     let deltaTime = 0;
-    let msPerFrame = 0;
     let lastUpdate = 0;
     let fps1 = 0;
     let showFPS = false;
@@ -1505,7 +1279,7 @@ export function startGame() {
         deltaTime = timestamp - lastTime;
         if (deltaTime >= frameInterval) {
             lastTime = timestamp - (deltaTime % frameInterval);
-            drawBarrels(); // Draw other players' barrels
+            //drawBarrels();
             updateFPS(timestamp);
             clearCanvas();
             drawOutOfBounds();
