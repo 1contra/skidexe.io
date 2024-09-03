@@ -54,7 +54,6 @@ export function getPlayers() {
     return Array.from(players.values());
 }
 
-
 document.addEventListener('DOMContentLoaded', () => {
     const exitMenu = document.getElementById('exitMenu');
     const resumeBtn = document.getElementById('resumeBtn');
@@ -241,6 +240,24 @@ export function startGame() {
     }
     */
 
+    chatInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const message = chatInput.value.trim();
+            chatInput.value = '';
+            
+            if (message.startsWith('/')) {
+                ws.send(JSON.stringify({
+                    type: 'chatCommand',
+                    command: message,
+                    playerId: player.id,
+                    playerX: player.x,
+                    playerY: player.y
+                }));
+            }
+        }
+    });
+
     function handleWebSocketMessage(event) {
         const message = JSON.parse(event.data);
     
@@ -334,6 +351,7 @@ export function startGame() {
                 if (data.id !== player.id) {
     
                     players.set(data.id, {
+                        //id: data.id,
                         x: data.x,
                         y: data.y,
                         angle: data.angle,

@@ -1,3 +1,4 @@
+require('dotenv').config(); 
 const express = require('express');
 const path = require('path');
 const http = require('http');
@@ -10,6 +11,9 @@ const app = express();
 const config = require('./config');
 
 const fs = require('fs');
+
+const adminToken = process.env.ADMIN_SECRET_KEY;
+const adminTokens = new Map(); // Stores player IDs with admin status
 
 const players = new Map();
 const BULLET_POOL_SIZE = 10000;
@@ -642,6 +646,61 @@ function spawnPolygon() {
     broadcastPolygonUpdates(wss);
 }
 
+function spawnPolygonADMIN(sides, radiant, playerX, playerY) {
+    const type = getPolygonTypeBySides(sides); // Map sides to type
+
+    // Calculate radius based on sides and radiant (you may adjust the formula)
+    const radius = polygonRadius[type] || 10; // Default to 10 if type is unknown
+    
+    const color = polygonColors[type] || '#FFFFFF';
+    const borderColor = borderColors[type] || '#000000';
+    const speed = polygonSpeed[type] || 1;
+    const health = polygonHealth[type] || 100;
+    const baseHealth = polygonBaseHealth[type] || 100;
+    const baseScore = polygonScore[type] || 0;
+    const scoreMultiplier = radiantScoreMultipliers[radiant] || 0;
+    const score = baseScore * scoreMultiplier;
+    
+    const fadeDuration = 200;
+    
+    let polygon;
+    switch (type) {
+        case 'triangle':
+            polygon = new Triangle(playerX, playerY, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
+            break;
+        case 'square':
+            polygon = new Square(playerX, playerY, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
+            break;
+        case 'pentagon':
+            polygon = new Pentagon(playerX, playerY, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
+            break;
+        case 'hexagon':
+            polygon = new Hexagon(playerX, playerY, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
+            break;
+        case 'heptagon':
+            polygon = new Heptagon(playerX, playerY, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
+            break;
+        case 'octagon':
+            polygon = new Octagon(playerX, playerY, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
+            break;
+        case 'nonagon':
+            polygon = new Nanogon(playerX, playerY, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
+            break;
+        case 'decagon':
+            polygon = new Decagon(playerX, playerY, radius, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant);
+            break;
+        default:
+            console.error('Unknown polygon type:', type);
+            return null;
+    }
+
+    console.log('Spawning Polygon:', {
+        x: playerX, y: playerY, radius, type, color, borderColor, speed, health, fadeDuration, baseHealth, score, radiant
+    });
+
+    return polygon;
+}
+
 function isBulletCollidingWithPolygon(bullet, polygon) {
     const dx = bullet.x - polygon.x;
     const dy = bullet.y - polygon.y;
@@ -815,6 +874,7 @@ function updatePlayer(id, data) {
         player.radius = data.radius;
         player.playerName = data.playerName;
         player.score = data.score;
+        //player.id = data.id;
     }
 }
 
@@ -1013,6 +1073,10 @@ wss.on('connection', (ws) => {
                 updatePlayer(id, { score: data.score });
                 break;
 
+            case 'chatCommand':
+                handleChatCommand(ws, message);
+                break;
+
             default:
                 console.log(`Unknown message type: ${data.type}`);
         }
@@ -1052,6 +1116,117 @@ wss.on('connection', (ws) => {
         id
     }));
 });
+
+function handleChatCommand(ws, message) {
+    try {
+        // Parse the JSON message
+        const { command, playerId, playerX, playerY } = JSON.parse(message);
+        
+        console.log("Received command:", command);
+        console.log("Player ID:", playerId);
+        console.log("Player X:", playerX);
+        console.log("Player Y:", playerY);
+        
+        if (command.startsWith('/')) {
+            const [cmd, ...args] = command.slice(1).split(' ');
+
+            if (cmd === 'setAdmin' && args[0]) {
+                const password = args[0];
+
+                if (password === process.env.ADMIN_PASSWORD) { // Check password from environment variable
+                    adminTokens.set(playerId, true);
+                    console.log(`Player ${playerId} got admin`);
+                    ws.send(JSON.stringify({
+                        type: 'adminCommandResponse',
+                        message: 'You are now an admin!'
+                    }));
+                } else {
+                    console.log("Player did not get admin");
+                    ws.send(JSON.stringify({
+                        type: 'adminCommandResponse',
+                        message: 'Invalid admin password.'
+                    }));
+                }
+            } else if (cmd === 'spawn') {
+                if (adminTokens.has(playerId)) {
+                    const [sidesStr, radiantStr] = args;
+                    const sides = parseInt(sidesStr, 10);
+                    const radiant = parseInt(radiantStr, 10);
+                    
+                    if (Number.isInteger(sides) && Number.isInteger(radiant)) {
+                        const polygon = spawnPolygonADMIN(sides, radiant, playerX, playerY);
+                        if (polygon) {
+                            polygons.push(polygon); // Add new polygon to the array
+                            
+                            // Broadcast the new polygon to all clients
+                            broadcast({
+                                type: 'spawnPolygon',
+                                sides,
+                                radiant,
+                                x: polygon.x,
+                                y: polygon.y,
+                                color: polygon.color,
+                                borderColor: polygon.borderColor,
+                                speed: polygon.speed,
+                                health: polygon.health,
+                                fadeDuration: polygon.fadeDuration,
+                                baseHealth: polygon.baseHealth,
+                                score: polygon.score
+                            });
+                            
+                            ws.send(JSON.stringify({
+                                type: 'adminCommandResponse',
+                                message: `Spawned a polygon with ${sides} sides and radiant ${radiant}.`
+                            }));
+                        } else {
+                            ws.send(JSON.stringify({
+                                type: 'adminCommandResponse',
+                                message: 'Error spawning polygon.'
+                            }));
+                        }
+                    } else {
+                        ws.send(JSON.stringify({
+                            type: 'adminCommandResponse',
+                            message: 'Invalid parameters for spawn command.'
+                        }));
+                    }
+                } else {
+                    ws.send(JSON.stringify({
+                        type: 'adminCommandResponse',
+                        message: 'You are not an admin.'
+                    }));
+                }
+            } else {
+                // Handle regular chat commands here
+                ws.send(JSON.stringify({
+                    type: 'chatResponse',
+                    message: `Command received: ${command}`
+                }));
+            }
+        }
+    } catch (error) {
+        console.error('Error handling chat command:', error);
+        ws.send(JSON.stringify({
+            type: 'adminCommandResponse',
+            message: 'Error processing command.'
+        }));
+    }
+}
+
+// Function to map sides to polygon type
+function getPolygonTypeBySides(sides) {
+    switch (sides) {
+        case 3: return 'triangle';
+        case 4: return 'square';
+        case 5: return 'pentagon';
+        case 6: return 'hexagon';
+        case 7: return 'heptagon';
+        case 8: return 'octagon';
+        case 9: return 'nonagon';
+        case 10: return 'decagon';
+        default: return 'triangle';
+    }
+}
 
 function broadcast(data) {
     const serializableData = JSON.parse(JSON.stringify(data));
