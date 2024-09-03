@@ -442,52 +442,183 @@ export function startGame() {
         return ws;
     }
 
+    function formatNumber(num) {
+        if (num >= 1e12) {
+            return (num / 1e12).toFixed(1) + 't'; // Trillion
+        } else if (num >= 1e9) {
+            return (num / 1e9).toFixed(1) + 'b'; // Billion
+        } else if (num >= 1e6) {
+            return (num / 1e6).toFixed(1) + 'm'; // Million
+        } else if (num >= 1e3) {
+            return (num / 1e3).toFixed(1) + 'k'; // Thousand
+        } else {
+            return num.toString();
+        }
+    }
+    
+    const previousPositions = new Map();
+    const targetPositions = new Map();
+
+    const x = canvas.width - 200;
+    const y = 20;          // Define y here so it's accessible in both functions
+    const lineHeight = 20; // Define lineHeight here so it's accessible in both functions
+
     function updateLeaderboard() {
-        // Convert Map to an array and sort
         const playerArray = Array.from(leaderboardPlayers.values());
         playerArray.sort((a, b) => b.score - a.score);
     
-        // Take top 10 players
         const topPlayers = playerArray.slice(0, 10);
-    
-        // Draw the leaderboard
+        
+        // Update the target positions map
+        topPlayers.forEach((player, index) => {
+            if (!targetPositions.has(player.id)) {
+                targetPositions.set(player.id, y + lineHeight * (index + 1));
+            } else {
+                targetPositions.set(player.id, y + lineHeight * (index + 1));
+            }
+        });
+
         drawLeaderboard(topPlayers);
     }
 
-    function drawLeaderboard(players) {
+    function drawLeaderboard() {
 
         if (gameStart) {
 
-            // Convert Map to an array and sort
             const playerArray = Array.from(leaderboardPlayers.values());
             playerArray.sort((a, b) => b.score - a.score);
 
-            // Take top 10 players
-            const topPlayers = playerArray.slice(0, 10);
-
-            // Clear previous drawing
-            //ctx.clearRect(canvas.width - 220, 0, 220, 400); // Adjust width and height as needed
-
-            // Define leaderboard position and style
             const x = canvas.width - 200;
-            const y = 20;
-            const lineHeight = 30;
+            //const y = 20;
+            const lineHeight = 15;
             const fontSize = 20;
+            const lineWidth = 5; // Adjust this value for line thickness
+
+            //ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
 
             ctx.font = `${fontSize}px Arial`;
             ctx.fillStyle = 'black';
             ctx.textAlign = 'left';
 
-            ctx.fillText('Leaderboard:', x, y);
+            ctx.fillText('Leaderboard', x, y);
 
-            // Draw each player
-            topPlayers.forEach((player, index) => {
-                const playerY = y + lineHeight * (index + 1);
-                ctx.fillText(`${index + 1}. ${player.playerName} - ${player.score}`, x, playerY);
+            const myId = player.id;
+
+            Array.from(targetPositions.keys()).forEach((playerId) => {
+                const targetY = targetPositions.get(playerId);
+                const previousY = previousPositions.get(playerId) || targetY;
+                const playerY = previousY + (targetY - previousY) * 0.1; // Interpolate position
+                const fontSize = 15;
+                ctx.font = `${fontSize}px Arial`;
+    
+                previousPositions.set(playerId, playerY);
+    
+                const player = leaderboardPlayers.get(playerId);
+                const isMyself = player.id === myId;
+                
+
+                
+                
+                
+                ctx.fillStyle = isMyself ? '#00bbff' : '#ff2a1c';
+    
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = lineWidth;
+    
+                // Draw background rectangle
+                ctx.beginPath();
+                ctx.roundRect(x, playerY - lineHeight / 2 + 10, 150, lineHeight, 7);
+                ctx.stroke();
+                ctx.fill();
+
+                // Draw the player's tank
+                const tankX = x - 20; // Position tank to the left of the text
+                const tankY = playerY + lineHeight / 4 + 6; // Center tank vertically
+                drawTank(ctx, tankX, tankY, player, myId);
+    
+                const formattedScore = formatNumber(player.score);
+                ctx.fillStyle = 'black';
+                ctx.fillText(`          ${player.playerName} - ${formattedScore}`, x, playerY + 3);
             });
 
         }
 
+    }
+
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
+        const ctx = this;
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.arc(x + width - radius, y + radius, radius, -Math.PI / 2, 0);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.arc(x + width - radius, y + height - radius, radius, 0, Math.PI / 2);
+        ctx.lineTo(x + radius, y + height);
+        ctx.arc(x + radius, y + height - radius, radius, Math.PI / 2, Math.PI);
+        ctx.lineTo(x, y + radius);
+        ctx.arc(x + radius, y + radius, radius, Math.PI, -Math.PI / 2);
+        ctx.closePath();
+    };
+
+    function drawTank(ctx, centerX, centerY, player, myId) {
+        const isMyself = player.id === myId;
+    
+        // Draw the player's barrel
+        const barrel = {
+            angle: player.barrelAngle || 0,
+            length: player.barrelLength || 10,
+            width: player.barrelWidth || 1,
+            color: player.barrelColor || '#8f8f8f',
+            borderColor: player.barrelBorderColor || '#6e6e6e'
+        };
+
+        ctx.fillStyle = isMyself ? '#00bbff' : '#ff2a1c';
+    
+        const barrelEndX = centerX + Math.cos(barrel.angle) * barrel.length;
+        const barrelEndY = centerY + Math.sin(barrel.angle) * barrel.length;
+    
+        const angle = barrel.angle;
+        const halfWidth = barrel.width / 2;
+        const xOffset = Math.cos(angle + Math.PI / 2) * halfWidth;
+        const yOffset = Math.sin(angle + Math.PI / 2) * halfWidth;
+    
+        const x1 = centerX - xOffset;
+        const y1 = centerY - yOffset;
+        const x2 = barrelEndX - xOffset;
+        const y2 = barrelEndY - yOffset;
+        const x3 = barrelEndX + xOffset;
+        const y3 = barrelEndY + yOffset;
+        const x4 = centerX + xOffset;
+        const y4 = centerY + yOffset;
+    
+        ctx.strokeStyle = barrel.borderColor;
+        ctx.lineWidth = barrel.width + 8;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x3, y3);
+        ctx.lineTo(x4, y4);
+        ctx.closePath();
+        ctx.stroke();
+    
+        ctx.strokeStyle = barrel.color;
+        ctx.lineWidth = barrel.width;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x3, y3);
+        ctx.lineTo(x4, y4);
+        ctx.closePath();
+        ctx.stroke();
+        
+        // Draw the player's tank circle
+        ctx.fillStyle = isMyself ? '#00bbff' : '#ff2a1c';
+        ctx.strokeStyle = isMyself ? '#007fad' : '#990900';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, player.radius || 7, 0, Math.PI * 2); // Default radius of 10 if undefined
+        ctx.fill();
+        ctx.stroke();
     }
     
     function drawPolygons(ctx, timestamp) {
