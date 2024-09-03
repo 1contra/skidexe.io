@@ -151,12 +151,21 @@ const player = {
             width: totalRadius * 2,
             height: totalRadius * 2
         };
-    }
+    },
 };
 
 function setRandomPlayerPosition() {
     player.x = Math.random() * (mapSize - player.radius * 2) + player.radius;
     player.y = Math.random() * (mapSize - player.radius * 2) + player.radius;
+}
+
+// Function to update the player's radius based on the score
+function updatePlayerRadius(player) {
+    // Define a scale factor for radius increase per score point
+    const scaleFactor = 0.1; // Adjust this value as needed
+
+    // Update radius based on score
+    player.radius = 15 + player.score * scaleFactor;
 }
 
 setRandomPlayerPosition();
@@ -334,7 +343,7 @@ export function startGame() {
                         barrelWidth: data.barrelWidth,
                         barrelColor: data.barrelColor,
                         barrelBorderColor: data.barrelBorderColor,
-                        radius: data.radius,
+                        radius: 15 + data.score * 0.1, // Calculate the radius based on score
                         score: player.score,
                         playerName: player.name
                     });
@@ -489,7 +498,7 @@ export function startGame() {
         playerArray.sort((a, b) => b.score - a.score);
     
         const topPlayers = playerArray.slice(0, 10);
-        console.log({topPlayers})
+        //console.log({topPlayers})
         const spacing = 5; // Space between each rectangle
         
         // Update the target positions map
@@ -1493,6 +1502,7 @@ export function startGame() {
             drawMessages(); 
             drawLeaderboard(ctx);
             updateLeaderboard();
+            //updatePlayerRadius();
             //updateScoreDisplay();
     
         }
