@@ -44,6 +44,8 @@ const servers = [
     //{ id: 3, name: '4 TDM', address: 'localhost', port: 3000, mode: '4tdm' }
 ];
 
+let leaderboard = []; // To store the top 10 players with scores
+
 app.use(express.static(path.join(config.staticDir)));
 
 app.get('/api/servers', (req, res) => {
@@ -862,6 +864,17 @@ function broadcastPlayerUpdate(id) {
     });
 }
 
+function broadcastPlayerUpdates(playerName) {
+    const playerArray = Array.from(players.values());
+    playerArray.sort((a, b) => b.score - a.score);
+    const top10Players = playerArray.slice(0, 10);
+
+    broadcast({
+        type: 'playerData',
+        players: top10Players
+    });
+}
+
 function broadcastPlayerJoin(id, playerName) {
     broadcast({
         type: 'playerJoin',
@@ -902,6 +915,30 @@ function handlePolygonHit(data) {
     }
 
     // Here you can handle additional logic if needed, e.g., updating polygon status
+}
+
+function getPlayerDataForBroadcast(player) {
+    return {
+        id: player.id,
+        score: player.score,
+        playerName: player.playerName
+    };
+}
+
+function updateLeaderboard(playerName) {
+    const playerArray = Array.from(players.values());
+    playerArray.sort((a, b) => b.score - a.score);
+    leaderboard = playerArray.slice(0, 10);
+
+    const leaderboardData = leaderboard.map(getPlayerDataForBroadcast);
+
+    console.log({leaderboardData})
+
+    broadcast({
+        type: 'playerData',
+        players: leaderboardData,
+        playerName
+    });
 }
 
 function handleShoot(data) {
@@ -974,7 +1011,7 @@ wss.on('connection', (ws) => {
         width: 15,
         length: 25,
     }
-    
+
     players.set(id, { ...defaultPlayer });
     barrels.set(id, { ...defaultBarrel });
     ws.on('message', (message) => {
@@ -985,12 +1022,15 @@ wss.on('connection', (ws) => {
                 updatePlayer(id, data);
                 broadcastPlayerUpdate(id, data);
                 broadcastPlayerJoin(id, data.playerName);
+                updateLeaderboard(); // Update leaderboard on new player join
                 console.log(`Player joined ${data.playerName}`)
                 break;
 
             case 'updatePosition':
                 updatePlayer(id, data);
                 broadcastPlayerUpdate(id, data);
+                updateLeaderboard(data.playerName);
+                console.log(`Update position ${data.playerName}`)
                 break;
 
             case 'shoot':
@@ -1019,7 +1059,8 @@ wss.on('connection', (ws) => {
             case 'updateScore':
                 // Handle updating player score here
                 updatePlayer(id, { score: data.score });
-                broadcastPlayerUpdate(id, players.get(id));
+                //updateLeaderboard(data.playerName); // Update leaderboard when score changes
+                //broadcastPlayerUpdates(data.playerName);
                 break;
 
             default:
@@ -1072,9 +1113,11 @@ wss.on('connection', (ws) => {
 
 
 function broadcast(data) {
+    const serializableData = JSON.parse(JSON.stringify(data)); // Safely stringify the data
+
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(data));
+            client.send(JSON.stringify(serializableData));
         }
     });
 }
@@ -1105,6 +1148,7 @@ server.listen(port, config.host, () => {
         updateBullets();
         updatePolygons();
         broadcastPolygonUpdates(wss);
+        //sendPlayerData();
         //console.log('Players:', Array.from(players.values()));
 
     }, 1000 / 120)

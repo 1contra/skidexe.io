@@ -9,7 +9,7 @@ const resumeBtn = document.getElementById('resumeBtn');
 const leaveBtn = document.getElementById('leaveBtn');
 
 const messages = [];
-let gameStart = false;
+export let gameStart = false;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const mapColor = '#f0f0f0';
@@ -20,6 +20,7 @@ const bulletSpeed = 3;
 const playerBarrels = new Map();
 const barrels = [];
 const polygons = []
+let leaderboardPlayers = new Map();
 
 let mapSize = 3000;
 let gridSize = 50;
@@ -49,6 +50,11 @@ const bulletSettings = {
     damage: 10,
 };
 
+export function getPlayers() {
+    return Array.from(players.values());
+}
+
+/*
 document.addEventListener('DOMContentLoaded', () => {
     const exitMenu = document.getElementById('exitMenu');
     const resumeBtn = document.getElementById('resumeBtn');
@@ -91,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         location.reload();
     });
 });
+*/
 
 function addMessage(text) {
     if (!gameStart) return;
@@ -200,6 +207,30 @@ export function startGame() {
     
     }
 
+    /*
+    function updateLeaderboard() {
+        const leaderboardElement =document.getElementById('leaderboard');
+        const leaderboardList = domument.getElementById('leaderboard-list');
+    
+        if (gameStart) {
+            leaderboardElement.style.display = 'block';
+    
+            const players = getPlayers();
+            players.sort((a, b) => b.score - a.score);
+            const top = players.lastIndexOf(0, 10);
+    
+            leaderboardList.innerHTML = '';
+    
+            top.array.forEach(player => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${player.name}: ${player.score}`;
+                leaderboardList.appendChild(listItem);
+            });
+        } else {
+            leaderboardElement.style.display = 'none';
+        }
+    }
+    */
 
     function handleWebSocketMessage(event) {
         const message = JSON.parse(event.data);
@@ -263,6 +294,16 @@ export function startGame() {
                 player.id = data.id;
     
             }
+
+            else if (data.type === 'playerData') {
+                // Update the Map with player data
+                data.players.forEach(player => {
+                    leaderboardPlayers.set(player.id, player);
+                });
+
+                // Optionally, sort and slice to get the top 10 players
+                updateLeaderboard(); // Custom function to sort and update the leaderboard
+            }
     
             else if (data.type === 'playerDisconnect') {
     
@@ -274,7 +315,7 @@ export function startGame() {
     
             else if (data.type === 'playerJoin') {
     
-                //addMessage(`Player ${data.playerName} joined`);
+                addMessage(`Player ${data.playerName} joined`);
     
             } 
     
@@ -294,6 +335,7 @@ export function startGame() {
                         barrelBorderColor: data.barrelBorderColor,
                         radius: data.radius,
                         score: player.score,
+                        playerName: player.name
                     });
     
                     playerBarrels.set(data.id, {
@@ -398,6 +440,54 @@ export function startGame() {
         };
     
         return ws;
+    }
+
+    function updateLeaderboard() {
+        // Convert Map to an array and sort
+        const playerArray = Array.from(leaderboardPlayers.values());
+        playerArray.sort((a, b) => b.score - a.score);
+    
+        // Take top 10 players
+        const topPlayers = playerArray.slice(0, 10);
+    
+        // Draw the leaderboard
+        drawLeaderboard(topPlayers);
+    }
+
+    function drawLeaderboard(players) {
+
+        if (gameStart) {
+
+            // Convert Map to an array and sort
+            const playerArray = Array.from(leaderboardPlayers.values());
+            playerArray.sort((a, b) => b.score - a.score);
+
+            // Take top 10 players
+            const topPlayers = playerArray.slice(0, 10);
+
+            // Clear previous drawing
+            //ctx.clearRect(canvas.width - 220, 0, 220, 400); // Adjust width and height as needed
+
+            // Define leaderboard position and style
+            const x = canvas.width - 200;
+            const y = 20;
+            const lineHeight = 30;
+            const fontSize = 20;
+
+            ctx.font = `${fontSize}px Arial`;
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'left';
+
+            ctx.fillText('Leaderboard:', x, y);
+
+            // Draw each player
+            topPlayers.forEach((player, index) => {
+                const playerY = y + lineHeight * (index + 1);
+                ctx.fillText(`${index + 1}. ${player.playerName} - ${player.score}`, x, playerY);
+            });
+
+        }
+
     }
     
     function drawPolygons(ctx, timestamp) {
@@ -917,6 +1007,7 @@ export function startGame() {
                 barrelBorderColor: player.barrelBorderColor,
                 radius: player.radius,
                 score: player.score,
+                playerName: player.name
     
             }));
         } else {
@@ -1234,6 +1325,7 @@ export function startGame() {
             drawOtherPlayers();
             drawPlayer();
             drawMessages(); 
+            drawLeaderboard(ctx);
             //updateScoreDisplay();
     
         }
