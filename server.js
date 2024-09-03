@@ -153,6 +153,22 @@ class Polygon {
     }
 
     takeDamage(amount) {
+
+        // Apply the damage instantly
+        this.health -= amount;
+        
+        // Ensure health doesn't drop below 0
+        this.health = Math.max(this.health, 0);
+        
+        // Check if the health is 0 or less and handle the state accordingly
+        if (this.health <= 0) {
+            this.startFading();
+        }
+
+        // Update the last damage time
+        this.lastDamageTime = Date.now();
+
+        /*
         const frames = 30;
         const damagePerFrame = amount / frames;
         let damageApplied = 0;
@@ -172,6 +188,7 @@ class Polygon {
         }, 1000 / 120); 
     
         this.lastDamageTime = Date.now();
+        */
     }
 
     respawn() {
@@ -380,25 +397,25 @@ const polygonHealth = {
 };
 
 const polygonBaseHealth = {
-    'triangle': 10,
-    'square': 20,
-    'pentagon': 50,
-    'hexagon': 100,
-    'heptagon': 200,
-    'octagon': 1000,
-    'nonagon': 2000,
-    'decagon': 3000
+    'triangle': 9,
+    'square': 19,
+    'pentagon': 49,
+    'hexagon': 99,
+    'heptagon': 199,
+    'octagon': 999,
+    'nonagon': 1999,
+    'decagon': 2999
 };
 
 const polygonScore = {
-    'triangle': 10,
-    'square': 20,
-    'pentagon': 50,
-    'hexagon': 100,
-    'heptagon': 200,
-    'octagon': 1000,
-    'nonagon': 2000,
-    'decagon': 3000
+    'triangle': 50,
+    'square': 500,
+    'pentagon': 1000,
+    'hexagon': 5000,
+    'heptagon': 10000,
+    'octagon': 250000,
+    'nonagon': 500000,
+    'decagon': 10000000
 };
 
 const polygonRadius = {
@@ -721,11 +738,28 @@ function updateBullets() {
             if (!player) return;  // If player not found, exit early
 
             if (hitPolygon.health > 0) {
-                hitPolygon.takeDamage(10);
+                
+                //if (hitPolygon.isFading) return;
 
-                if (hitPolygon.isFading) return;
+                hitPolygon.takeDamage(bullet.damage);
 
-                if (hitPolygon.health < .1) {
+                if (hitPolygon.health < bullet.damage) {
+
+
+                    if (hitPolygon.isFading) return;
+                    addScorePlayer(bulletId, hitPolygon.score);
+                    broadcast({
+
+                        type: 'bulletHit',
+                        bulletId,
+                        polygonId: hitPolygon.id
+
+                    });
+
+
+                }
+
+                if (hitPolygon.health < 1) {
                    addScorePlayer(bulletId, hitPolygon.score);
 
                     
@@ -871,7 +905,8 @@ function handleShoot(data) {
             speedY: data.speedY,
             ownerId: data.ownerId,
             color: data.color,
-            active: true
+            active: true,
+            damage: data.damage,
         };
     } else {
         bullet.x = data.x;
@@ -881,6 +916,7 @@ function handleShoot(data) {
         bullet.ownerId = data.ownerId;
         bullet.color = data.color;
         bullet.active = true;
+        bullet.damage = data.damage;
     }
     broadcast({
         type: 'bulletUpdate',
@@ -890,7 +926,8 @@ function handleShoot(data) {
         speedX: bullet.speedX,
         speedY: bullet.speedY,
         ownerId: bullet.ownerId,
-        color: bullet.color
+        color: bullet.color,
+        damage: bullet.damage,
     });
 }
 

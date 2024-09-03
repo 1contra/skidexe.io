@@ -45,7 +45,8 @@ const bulletSettings = {
     borderColor: '#006c9e',
     borderWidth: 2,
     speed: 3,
-    maxLifetime: 3000
+    maxLifetime: 3000,
+    damage: 10,
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -185,6 +186,7 @@ export function startGame() {
         const scoreElement = document.getElementById('scoreDisplay');
         scoreElement.textContent = `Score: ${player.score}`;
     
+        /*
         // Send the updated score to the server
         if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({
@@ -194,6 +196,7 @@ export function startGame() {
         } else {
             console.error('WebSocket connection is not open.');
         }
+            */
     
     }
 
@@ -314,7 +317,8 @@ export function startGame() {
                     speedX: data.speedX,
                     speedY: data.speedY,
                     ownerId: data.ownerId,
-                    color: data.color
+                    color: data.color,
+                    bullet: data.damage
     
                 });
     
@@ -344,7 +348,7 @@ export function startGame() {
                 const { playerId, score } = data;
         
                 if (playerId === player.id) {
-                    player.score += score;
+                    player.score = score;
                     updateScoreDisplay();
                 }
             }
@@ -407,7 +411,7 @@ export function startGame() {
         });
     }
     
-    const baseHealthValues = [9, 19, 9, 99, 199, 999, 1999, 2999];
+    const baseHealthValues = [9, 19, 49, 99, 199, 999, 1999, 2999];
     
     const polygonColors = {
         '3': '#FF443D',
@@ -1056,7 +1060,8 @@ export function startGame() {
             speedY: Math.sin(barrel.angle) * bulletSettings.speed,
             ownerId: player.id,
             color: bulletSettings.color,
-            borderWidth: bulletSettings.borderWidth
+            borderWidth: bulletSettings.borderWidth,
+            damage: bulletSettings.damage,
         };
         //ws.send(JSON.stringify(bullet));
         ws.send(JSON.stringify({
@@ -1067,7 +1072,8 @@ export function startGame() {
             speedY: bullet.speedY,
             ownerId: bullet.ownerId,
             color: bullet.color,
-            borderWidth: bulletSettings.borderWidth
+            borderWidth: bulletSettings.borderWidth,
+            damage: bulletSettings.damage,
         }));
     }
     
