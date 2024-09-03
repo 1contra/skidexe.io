@@ -501,13 +501,15 @@ export function startGame() {
     
         const topPlayers = playerArray.slice(0, 10);
         console.log({topPlayers})
+        const spacing = 5; // Space between each rectangle
         
         // Update the target positions map
         topPlayers.forEach((player, index) => {
+            const newYPosition = y + (lineHeight + spacing) * (index + 1);
             if (!targetPositions.has(player.id)) {
-                targetPositions.set(player.id, y + lineHeight * (index + 1));
+                targetPositions.set(player.id, newYPosition);
             } else {
-                targetPositions.set(player.id, y + lineHeight * (index + 1));
+                targetPositions.set(player.id, newYPosition);
             }
         });
 
@@ -524,14 +526,19 @@ export function startGame() {
             const x = canvas.width - 200;
             //const y = 20;
             const lineHeight = 15;
-            const fontSize = 20;
+            const fontSize = 30;
             const lineWidth = 5; // Adjust this value for line thickness
 
             ctx.font = `${fontSize}px Arial`;
             ctx.fillStyle = 'black';
             ctx.textAlign = 'left';
 
-            ctx.fillText('Leaderboard', x, y);
+            // Draw "Leaderboard" title with stylized text
+            ctx.lineWidth = 4; // Adjust this value for text border thickness
+            ctx.strokeStyle = 'black';
+            ctx.fillStyle = 'white';
+            ctx.strokeText('LEADERBOARD', x - 40, y);
+            ctx.fillText('LEADERBOARD', x - 40, y);
 
             const myId = player.id;
 
@@ -539,7 +546,7 @@ export function startGame() {
                 const targetY = targetPositions.get(playerId);
                 const previousY = previousPositions.get(playerId) || targetY;
                 const playerY = previousY + (targetY - previousY) * 0.1; // Interpolate position
-                const fontSize = 15;
+                const fontSize = 14;
                 ctx.font = `${fontSize}px Arial`;
     
                 previousPositions.set(playerId, playerY);
@@ -553,30 +560,29 @@ export function startGame() {
                 }
 
                 const isMyself = player.id === myId;
-                
-
-                
-                
-                
+                    
                 ctx.fillStyle = isMyself ? '#00bbff' : '#ff2a1c';
-    
                 ctx.strokeStyle = 'black';
                 ctx.lineWidth = lineWidth;
     
                 // Draw background rectangle
                 ctx.beginPath();
-                ctx.roundRect(x, playerY - lineHeight / 2 + 10, 150, lineHeight, 7);
+                ctx.roundRect(x - 20, playerY - lineHeight / 2 + 20, 200, lineHeight, 7);
                 ctx.stroke();
                 ctx.fill();
 
                 // Draw the player's tank
-                const tankX = x - 20; // Position tank to the left of the text
-                const tankY = playerY + lineHeight / 4 + 6; // Center tank vertically
+                const tankX = x - 40; // Position tank to the left of the text
+                const tankY = playerY + lineHeight / 4 + 16; // Center tank vertically
                 drawTank(ctx, tankX, tankY, player, myId);
     
                 const formattedScore = formatNumber(player.score);
                 ctx.fillStyle = 'black';
-                ctx.fillText(`          ${player.playerName} - ${formattedScore}`, x, playerY + 3);
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = 'black';
+                ctx.fillStyle = 'white';
+                ctx.strokeText(`          ${player.playerName} - ${formattedScore}`, x, playerY + 13);
+                ctx.fillText(`          ${player.playerName} - ${formattedScore}`, x, playerY + 13);
 
                 
             });
