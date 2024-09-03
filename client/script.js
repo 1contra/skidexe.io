@@ -10,6 +10,7 @@ const exitMenu = document.getElementById('exitMenu');
 const resumeBtn = document.getElementById('resumeBtn');
 const leaveBtn = document.getElementById('leaveBtn');
 
+
 document.addEventListener('DOMContentLoaded', () => {
     const showFpsBtn = document.getElementById('showFpsBtn');
     const debugModeBtn = document.getElementById('debugModeBtn');

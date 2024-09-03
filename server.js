@@ -932,7 +932,7 @@ function updateLeaderboard(playerName) {
 
     const leaderboardData = leaderboard.map(getPlayerDataForBroadcast);
 
-    console.log({leaderboardData})
+    //console.log({leaderboardData})
 
     broadcast({
         type: 'playerData',
@@ -1023,14 +1023,14 @@ wss.on('connection', (ws) => {
                 broadcastPlayerUpdate(id, data);
                 broadcastPlayerJoin(id, data.playerName);
                 updateLeaderboard(); // Update leaderboard on new player join
-                console.log(`Player joined ${data.playerName}`)
+                //console.log(`Player joined ${data.playerName}`)
                 break;
 
             case 'updatePosition':
                 updatePlayer(id, data);
                 broadcastPlayerUpdate(id, data);
-                updateLeaderboard(data.playerName);
-                console.log(`Update position ${data.playerName}`)
+                updateLeaderboard();
+                //console.log(`Update position ${data.playerName}`)
                 break;
 
             case 'shoot':
