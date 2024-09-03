@@ -235,8 +235,6 @@ export function startGame() {
 
     let isConnected = false;
 
-    toggleChatVisibility();
-
     function connectWebSocket() {
         
         if (isConnected) {
@@ -323,7 +321,7 @@ export function startGame() {
                         barrelWidth: data.barrelWidth,
                         barrelColor: data.barrelColor,
                         barrelBorderColor: data.barrelBorderColor,
-                        radius: 15 + data.score * 0.1,
+                        radius: player.radius,
                         score: player.score,
                         playerName: player.name
                     });
@@ -888,6 +886,15 @@ export function startGame() {
             ctx.stroke();
         }
     }
+
+    function updatePlayerRadius(player) {
+        // Define a base radius and a growth factor
+        const baseRadius = 15; // Starting radius
+        const growthFactor = 0.0001; // How much the radius increases per point of score
+    
+        // Calculate the new radius based on the player's score
+        player.radius = baseRadius + player.score * growthFactor;
+    }
     
     function drawPlayer() {
         if (!gameStart) return;
@@ -1278,12 +1285,12 @@ export function startGame() {
                 ctx.fillText(p.name, textX, textY);
                 */
     
-                const centerX = p.x - player.x + canvas.width / 2;
-                const centerY = p.y - player.y + canvas.height / 2;
-                const barrelEndX = centerX + Math.cos(barrel.angle) * barrel.length;
-                const barrelEndY = centerY + Math.sin(barrel.angle) * barrel.length;
-                const angle = barrel.angle;
-                const halfWidth = barrel.width / 2;
+                const centerX = p.x - p.x + canvas.width / 2;
+                const centerY = p.y - p.y + canvas.height / 2;
+                const barrelEndX = centerX + Math.cos(p.barrelAngle) * p.barrelLength;
+                const barrelEndY = centerY + Math.sin(p.barrelAngle) * p.barrelLength;
+                const angle = p.barrelAngle;
+                const halfWidth = p.barrelWidth / 2;
                 const xOffset = Math.cos(angle + Math.PI / 2) * halfWidth;
                 const yOffset = Math.sin(angle + Math.PI / 2) * halfWidth;
                 const x1 = centerX - xOffset;
@@ -1294,8 +1301,8 @@ export function startGame() {
                 const y3 = barrelEndY + yOffset;
                 const x4 = centerX + xOffset;
                 const y4 = centerY + yOffset;
-                ctx.strokeStyle = barrel.borderColor;
-                ctx.lineWidth = barrel.width + 8;
+                ctx.strokeStyle = p.barrelBorderColor;
+                ctx.lineWidth = p.barrelWidth + 8;
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(x2, y2);
@@ -1303,8 +1310,8 @@ export function startGame() {
                 ctx.lineTo(x4, y4);
                 ctx.closePath();
                 ctx.stroke();
-                ctx.strokeStyle = barrel.color;
-                ctx.lineWidth = barrel.width;
+                ctx.strokeStyle = p.barrelColor;
+                ctx.lineWidth = p.barrelWidth;
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(x2, y2);
@@ -1402,6 +1409,7 @@ export function startGame() {
             drawLeaderboard(ctx);
             updateLeaderboard();
             updatePlayer();
+            updatePlayerRadius(player);
             //renderInstructions();
             //handleChatVisibility();
             //updatePlayerRadius();
