@@ -140,6 +140,13 @@ const player = {
     angle: 0,
     score: 0,
     name: "",
+    bulletRadius: 7,
+    bulletColor: '#00bbff',
+    bulletBorderColor: '#006c9e',
+    bulletBorderWidth: 2,
+    bulletSpeed: 3,
+    bulletMaxLifetime: 3000,
+    bulletDamage: 10,
     get hitbox() {
         const totalRadius = this.radius + this.borderWidth;
         return {
@@ -890,10 +897,27 @@ export function startGame() {
     function updatePlayerRadius(player) {
         // Define a base radius and a growth factor
         const baseRadius = 15; // Starting radius
-        const growthFactor = 0.0001; // How much the radius increases per point of score
+        const growthFactor = 1; // How much the radius increases per point of score
     
         // Calculate the new radius based on the player's score
-        player.radius = baseRadius + player.score * growthFactor;
+        player.radius = baseRadius + growthFactor * Math.log(player.score + 1);
+        
+
+        const baseBulletRadius = 7; // Starting radius for bullets
+        const bulletGrowthFactor = 1; // Controls the growth of bullet radius
+
+        // Calculate the new bullet radius based on the player's score
+        player.bulletRadius = baseBulletRadius + bulletGrowthFactor * Math.log(player.score + 1);
+
+        // Define base and growth factors for the barrel
+        const baseBarrelLength = 20; // Starting length for the barrel
+        const baseBarrelWidth = 7;   // Starting width for the barrel
+        const barrelGrowthFactor = 1; // Controls how much the barrel size increases
+
+        // Calculate the new barrel dimensions based on the player's score
+        barrel.length = baseBarrelLength + barrelGrowthFactor * Math.log(player.score + 1);
+        barrel.width = baseBarrelWidth + barrelGrowthFactor * Math.log(player.score + 1);
+
     }
     
     function drawPlayer() {
@@ -941,73 +965,19 @@ export function startGame() {
         ctx.stroke();
     }
     
-    
-    
-    function drawBarrels() {
-        playerBarrels.forEach((barrel, playerId) => {
-    
-            //TODO 
-            //drawing barrels for other clients is fmessed up
-    
-            if (playerId === player.id) return;
-            const playerData = players.get(playerId);
-            if (!playerData) return;
-    
-            const centerX = playerData.x - player.x + canvas.width / 2;
-            const centerY = playerData.y - player.y + canvas.height / 2;
-    
-            const barrelEndX = centerX + Math.cos(barrel.angle) * barrel.length;
-            const barrelEndY = centerY + Math.sin(barrel.angle) * barrel.length;
-    
-            const angle = barrel.angle;
-            const halfWidth = barrel.width / 2;
-            const xOffset = Math.cos(angle + Math.PI / 2) * halfWidth;
-            const yOffset = Math.sin(angle + Math.PI / 2) * halfWidth;
-    
-            const x1 = centerX - xOffset;
-            const y1 = centerY - yOffset;
-            const x2 = barrelEndX - xOffset;
-            const y2 = barrelEndY - yOffset;
-            const x3 = barrelEndX + xOffset;
-            const y3 = barrelEndY + yOffset;
-            const x4 = centerX + xOffset;
-            const y4 = centerY + yOffset;
-    
-            ctx.strokeStyle = barrel.borderColor;
-            ctx.lineWidth = barrel.width + 8;
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.lineTo(x3, y3);
-            ctx.lineTo(x4, y4);
-            ctx.closePath();
-            ctx.stroke();
-    
-            ctx.strokeStyle = barrel.color;
-            ctx.lineWidth = barrel.width;
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.lineTo(x3, y3);
-            ctx.lineTo(x4, y4);
-            ctx.closePath();
-            ctx.stroke();
-        });
-    }
-    
     function drawBullets() {
         bullets.forEach(bullet => {
             const isOwnedBySelf = bullet.ownerId === player.id;
-            const bulletColor = isOwnedBySelf ? bulletSettings.color : '#ff2a1c';
-            const bulletBorderColor = isOwnedBySelf ? bulletSettings.borderColor : '#990900';
+            const bulletColor = isOwnedBySelf ? player.bulletColor : '#ff2a1c';
+            const bulletBorderColor = isOwnedBySelf ? player.bulletBorderColor : '#990900';
             ctx.strokeStyle = bulletBorderColor;
-            ctx.lineWidth = bulletSettings.borderWidth * 2;
+            ctx.lineWidth = player.bulletBorderWidth * 2;
             ctx.beginPath();
-            ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, bulletSettings.radius + bulletSettings.borderWidth, 0, Math.PI * 2);
+            ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, player.bulletRadius + player.bulletBorderWidth, 0, Math.PI * 2);
             ctx.stroke();
             ctx.fillStyle = bulletColor;
             ctx.beginPath();
-            ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, bulletSettings.radius, 0, Math.PI * 2);
+            ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, player.bulletRadius, 0, Math.PI * 2);
             ctx.fill();
         });
     }
@@ -1128,7 +1098,7 @@ export function startGame() {
             bullet.y += bullet.speedY;
             bullet.lifetime += 16.67;
 
-            if (bullet.x < 0 || bullet.x > mapSize || bullet.y < 0 || bullet.y > mapSize || bullet.lifetime > bulletSettings.maxLifetime) {
+            if (bullet.x < 0 || bullet.x > mapSize || bullet.y < 0 || bullet.y > mapSize || bullet.lifetime > player.bulletMaxLifetime) {
                 bullets.splice(index, 1);
                 return;
             }
@@ -1139,7 +1109,7 @@ export function startGame() {
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 const expandedPlayerRadius = player.radius;
     
-                if (distance < expandedPlayerRadius + bulletSettings.radius) {
+                if (distance < expandedPlayerRadius + player.bulletRadius) {
                     bullets.splice(index, 1);
                     return;
                 }
@@ -1177,7 +1147,7 @@ export function startGame() {
                     const playerDx = p.x - bullet.x;
                     const playerDy = p.y - bullet.y;
                     const playerDistance = Math.sqrt(playerDx * playerDx + playerDy * playerDy);
-                    if (playerDistance < 15 + bulletSettings.radius) {
+                    if (playerDistance < 15 + player.bulletRadius) {
                         bullets.splice(index, 1);
                         console.log("bullet hit player")
                         return;
@@ -1238,12 +1208,12 @@ export function startGame() {
         const bullet = {
             x: barrelEndX,
             y: barrelEndY,
-            speedX: Math.cos(barrel.angle) * bulletSettings.speed,
-            speedY: Math.sin(barrel.angle) * bulletSettings.speed,
+            speedX: Math.cos(barrel.angle) * player.bulletSpeed,
+            speedY: Math.sin(barrel.angle) * player.bulletSpeed,
             ownerId: player.id,
-            color: bulletSettings.color,
-            borderWidth: bulletSettings.borderWidth,
-            damage: bulletSettings.damage,
+            color: player.bulletColor,
+            borderWidth: player.bulletBorderWidth,
+            damage: player.bulletDamage,
         };
         ws.send(JSON.stringify({
             type: 'shoot',
@@ -1253,8 +1223,8 @@ export function startGame() {
             speedY: bullet.speedY,
             ownerId: bullet.ownerId,
             color: bullet.color,
-            borderWidth: bulletSettings.borderWidth,
-            damage: bulletSettings.damage,
+            borderWidth: player.bulletBorderWidth,
+            damage: player.bulletDamage,
         }));
     }
     
@@ -1270,11 +1240,11 @@ export function startGame() {
                 ctx.stroke();
     
                 const barrel = {
-                    angle: p.barrelAngle,
-                    length: p.barrelLength,
-                    width: p.barrelWidth,
-                    color: p.barrelColor,
-                    borderColor: p.barrelBorderColor
+                    angle: p.barrelAngle || 0,
+                    length: p.barrelLength || 10,
+                    width: p.barrelWidth || 1,
+                    color: p.barrelColor || '#8f8f8f',
+                    borderColor: p.barrelBorderColor || '#6e6e6e',
                 };
     
                 /* PLAYER NAME BROKEN
