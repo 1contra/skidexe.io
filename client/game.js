@@ -54,7 +54,7 @@ export function getPlayers() {
     return Array.from(players.values());
 }
 
-/*
+
 document.addEventListener('DOMContentLoaded', () => {
     const exitMenu = document.getElementById('exitMenu');
     const resumeBtn = document.getElementById('resumeBtn');
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         location.reload();
     });
 });
-*/
+
 
 function addMessage(text) {
     if (!gameStart) return;
@@ -308,8 +308,9 @@ export function startGame() {
             else if (data.type === 'playerDisconnect') {
     
                 players.delete(data.id);
+                handlePlayerLeave(data.id);
     
-                //addMessage(`Player ${data.playerName} left`);
+                addMessage(`Player ${data.playerName} left`);
     
             } 
     
@@ -425,13 +426,6 @@ export function startGame() {
     
             }
     
-            else if (data.type === 'playerDisconnect') {
-    
-                players.delete(data.id);
-                handlePlayerLeave(data.id);
-    
-            }
-    
         };
     
         ws.onclose = () => {
@@ -506,6 +500,7 @@ export function startGame() {
         playerArray.sort((a, b) => b.score - a.score);
     
         const topPlayers = playerArray.slice(0, 10);
+        console.log({topPlayers})
         
         // Update the target positions map
         topPlayers.forEach((player, index) => {
@@ -550,6 +545,13 @@ export function startGame() {
                 previousPositions.set(playerId, playerY);
     
                 const player = leaderboardPlayers.get(playerId);
+
+                if (!player) {
+                    // Remove the player from targetPositions if they no longer exist
+                    targetPositions.delete(playerId);
+                    return;
+                }
+
                 const isMyself = player.id === myId;
                 
 
@@ -1481,7 +1483,7 @@ export function startGame() {
         deltaTime = timestamp - lastTime;
         if (deltaTime >= frameInterval) {
             lastTime = timestamp - (deltaTime % frameInterval);
-            //drawBarrels(); // Draw other players' barrels
+            drawBarrels(); // Draw other players' barrels
             updateFPS(timestamp);
             clearCanvas();
             drawOutOfBounds();
@@ -1496,6 +1498,7 @@ export function startGame() {
             drawMessages(); 
             drawLeaderboard(ctx);
             updateBarrelAngle();
+            updateLeaderboard();
             //updateScoreDisplay();
     
         }

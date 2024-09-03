@@ -7,7 +7,6 @@ const app = express();
 const config = require('./config');
 const fs = require('fs');
 
-
 const players = new Map();
 const BULLET_POOL_SIZE = 10000;
 const bulletPool = [];
@@ -44,7 +43,7 @@ const servers = [
     //{ id: 3, name: '4 TDM', address: 'localhost', port: 3000, mode: '4tdm' }
 ];
 
-let leaderboard = []; // To store the top 10 players with scores
+let leaderboard = [];
 
 app.use(express.static(path.join(config.staticDir)));
 
@@ -86,7 +85,6 @@ class Polygon {
         this.score = score;
         this.angle = Math.random() * Math.PI * 2;
         this.rotationAngle = 0;
-        //this.rotationSpeed = 0.02; // Speed of rotation
         this.health = health;
         this.radiant = radiant;
         this.baseHealth = baseHealth;
@@ -129,8 +127,6 @@ class Polygon {
         this.x = this.centerX + Math.cos(this.angle) * this.pathRadius;
         this.y = this.centerY + Math.sin(this.angle) * this.pathRadius;
 
-        //this.rotationAngle += this.rotationSpeed;
-
         const mapSize = 3000;
         const radius = this.radius;
 
@@ -156,41 +152,14 @@ class Polygon {
 
     takeDamage(amount) {
 
-        // Apply the damage instantly
         this.health -= amount;
-        
-        // Ensure health doesn't drop below 0
         this.health = Math.max(this.health, 0);
-        
-        // Check if the health is 0 or less and handle the state accordingly
+
         if (this.health <= 0) {
             this.startFading();
         }
 
-        // Update the last damage time
         this.lastDamageTime = Date.now();
-
-        /*
-        const frames = 30;
-        const damagePerFrame = amount / frames;
-        let damageApplied = 0;
-
-        const interval = setInterval(() => {
-            if (damageApplied >= amount || this.health <= 0) {
-                this.health = Math.max(this.health, 0);
-                clearInterval(interval);
-                if (this.health <= 0) {
-                    this.startFading();
-                }
-                return;
-            }
-    
-            this.health -= damagePerFrame;
-            damageApplied += damagePerFrame;
-        }, 1000 / 120); 
-    
-        this.lastDamageTime = Date.now();
-        */
     }
 
     respawn() {
@@ -220,7 +189,7 @@ class Polygon {
         context.fillStyle = fadeColor;
         context.globalAlpha = this.opacity;
         context.fill();
-        context.globalAlpha = 1.0; // Reset alpha
+        context.globalAlpha = 1.0;
     }
 
     RadiantVFX(color, radiant) {
@@ -445,58 +414,77 @@ const radiantScoreMultipliers = {
     10: 1024
 };
 
+const scoreInterpolations = new Map();
+
 function addScorePlayer(bulletId, score) {
     const bullet = activeBullets.get(bulletId);
-    if (!bullet) return;  // If bullet not found, exit early
+    if (!bullet) return;
 
     const player = players.get(bullet.ownerId);
-    if (!player) return;  // If player not found, exit early
+    if (!player) return;
 
-    player.score = (player.score || 0) + score;
+    startScoreInterpolation(player.id, score);
     console.log(`Player ${player.id} scored ${score} points! Total Score: ${player.score}`);
 
-    // Optionally, broadcast the score update to other players
-    broadcast({
-        type: 'scoreUpdate',
-        playerId: player.id,
-        score: player.score
-    });
+}
+
+function startScoreInterpolation(playerId, scoreToAdd) {
+    const duration = 1000;
+    const frames = 60; 
+    const increment = scoreToAdd / frames;
+    let currentFrame = 0;
+
+    const intervalId = setInterval(() => {
+        const player = players.get(playerId);
+        if (!player) {
+            clearInterval(intervalId);
+            return;
+        }
+
+        player.score += increment;
+        currentFrame++;
+
+        broadcast({
+            type: 'scoreUpdate',
+            playerId: player.id,
+            score: Math.floor(player.score)
+        });
+
+        if (currentFrame >= frames) {
+            clearInterval(intervalId);
+            scoreInterpolations.delete(playerId);
+        }
+    }, duration / frames);
+
+    scoreInterpolations.set(playerId, intervalId);
 }
 
 function getRadiantLevel(type) {
-    // Ensure the provided type is valid
     const polygon = polygonTypes.find(p => p.type === type);
     
     if (!polygon) {
         console.error("Error: Invalid type provided.");
-        return 0; // Return 0 as a default if type is invalid
+        return 0;
     }
 
-    // Get the radiant values for the polygon type
     const rarities = radiantVal[type];
     
     if (!rarities) {
         console.error("Error: Radiant values not defined for type.");
-        return 0; // Return 0 as a default if radiant values are missing
+        return 0;
     }
 
-    // Calculate the total rarity
     const totalRarity = rarities.reduce((sum, rarity) => sum + rarity, 0);
-    
-    // Generate a random number between 0 and totalRarity
     const random = Math.random() * totalRarity;
-    
     let cumulativeRarity = 0;
     
-    // Determine the radiant level based on the random value
     for (let i = 0; i < rarities.length; i++) {
         cumulativeRarity += rarities[i];
         if (random < cumulativeRarity) {
-            return i; // Return the index corresponding to the radiant level
+            return i;
         }
     }
 
-    // Fallback case if something goes wrong
     console.warn("Warning: Fallback to radiant 0.");
     return 0;
 }
@@ -678,7 +666,6 @@ function resolvePolygonCollisions(polygons) {
 }
 
 
-
 for (let i = 0; i < BULLET_POOL_SIZE; i++) {
     bulletPool.push({
         x: 0,
@@ -713,7 +700,7 @@ function isColliding(bullet, player) {
     return distance < collisionRadius;
 }
 
-const scoreAddedMap = new Map(); // To track score addition status
+const scoreAddedMap = new Map();
 
 function updateBullets() {
     const bulletsToRemove = [];
@@ -726,7 +713,6 @@ function updateBullets() {
             return;
         }
 
-        // Check collision with polygons
         let hitPolygon = null;
         for (const polygon of polygons) {
             if (isBulletCollidingWithPolygon(bullet, polygon)) {
@@ -737,12 +723,9 @@ function updateBullets() {
         
         if (hitPolygon) {
             const player = players.get(bullet.ownerId);
-            if (!player) return;  // If player not found, exit early
+            if (!player) return;
 
             if (hitPolygon.health > 0) {
-                
-                //if (hitPolygon.isFading) return;
-
                 hitPolygon.takeDamage(bullet.damage);
 
                 if (hitPolygon.health <= bullet.damage) {
@@ -758,18 +741,6 @@ function updateBullets() {
                         });
                     }
 
-                    /*
-                    if (hitPolygon.isFading) return;
-                    addScorePlayer(bulletId, hitPolygon.score);
-                    broadcast({
-
-                        type: 'bulletHit',
-                        bulletId,
-                        polygonId: hitPolygon.id
-
-                    });
-                    */
-
                 }
 
                 if (hitPolygon.health < 1) {
@@ -782,14 +753,12 @@ function updateBullets() {
                         polygonId: hitPolygon.id
                     });
                 }
-                // Remove bullet after it hits the polygon
                 bulletsToRemove.push(bulletId);
                 returnBulletToPool(bullet);
             }
             return;
         }
 
-        // Check collision with players
         for (const player of players.values()) {
             if (bullet.ownerId !== player.id && isColliding(bullet, player)) {
                 bulletsToRemove.push(bulletId);
@@ -892,29 +861,14 @@ function updateBullet(data) {
     }
 }
 
-// Function to handle polygon hit
 function handlePolygonHit(data) {
     const { playerId, bulletId, polygonId, score } = data;
 
-    // Find player and update their score
     const player = players.get(playerId);
     if (player) {
-        /*
-        player.score += score;
-        console.log(`Player ${playerId} scored ${score}. New score: ${player.score}`);
-        
-        // Optionally broadcast updated player score to all clients
-        broadcast({
-            type: 'scoreUpdate',
-            playerId,
-            score: player.score
-        });
-        */
     } else {
         console.log(`Player ${playerId} not found.`);
     }
-
-    // Here you can handle additional logic if needed, e.g., updating polygon status
 }
 
 function getPlayerDataForBroadcast(player) {
@@ -931,9 +885,6 @@ function updateLeaderboard(playerName) {
     leaderboard = playerArray.slice(0, 10);
 
     const leaderboardData = leaderboard.map(getPlayerDataForBroadcast);
-
-    //console.log({leaderboardData})
-
     broadcast({
         type: 'playerData',
         players: leaderboardData,
@@ -984,7 +935,6 @@ function generateUniqueId() {
 
 wss.on('connection', (ws) => {
     const id = Date.now();
-    //let playerName = Player${id}; // Use player ID or another method to assign a name
     const defaultPlayer = {
         ws,
         x: 0,
@@ -1056,10 +1006,7 @@ wss.on('connection', (ws) => {
                 break;
 
             case 'updateScore':
-                // Handle updating player score here
                 updatePlayer(id, { score: data.score });
-                //updateLeaderboard(data.playerName); // Update leaderboard when score changes
-                //broadcastPlayerUpdates(data.playerName);
                 break;
 
             default:
@@ -1069,59 +1016,42 @@ wss.on('connection', (ws) => {
     ws.on('close', () => {
 
         const player = players.get(id);
-
         let playerName = player.playerName;
-
         console.log(`Player left: ${playerName}`);
 
         if (player) {
             let playerName = player.playerName;
-            
-            // Remove the player from the map
             players.delete(id);
-    
-            // Broadcast the player's departure
             broadcast({
                 type: 'playerLeave',
                 id,
                 playerName
             });
-    
-            // Update and broadcast the leaderboard
             updateLeaderboard();
         }
 
         broadcast({
-
             type: 'leave',
             id,
             playerName: playerName,
-
         });
-        
+    
         players.delete(id);
-
         broadcast({
-
             type: 'playerDisconnect',
             id
-
         });
-
     });
 
     ws.send(JSON.stringify({
-
         type: 'welcome',
         id
-
     }));
-
 });
 
 
 function broadcast(data) {
-    const serializableData = JSON.parse(JSON.stringify(data)); // Safely stringify the data
+    const serializableData = JSON.parse(JSON.stringify(data));
 
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
@@ -1130,25 +1060,6 @@ function broadcast(data) {
     });
 }
 
-/*
-// Upgrade HTTP server to WebSocket server for specific paths
-server.on('upgrade', (request, socket, head) => {
-    const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
-
-    if (pathname === '/ffa') {
-        wssFFA.handleUpgrade(request, socket, head, (ws) => {
-            wssFFA.emit('connection', ws, request);
-        });
-    } else if (pathname === '/tdm') {
-        wssTDM.handleUpgrade(request, socket, head, (ws) => {
-            wssTDM.emit('connection', ws, request);
-        });
-    } else {
-        socket.destroy(); // Close connection if path is unknown
-    }
-});
-*/
-
 server.listen(port, config.host, () => {
     console.log(`Server running at ${config.host}:${port}`);
     setInterval(() => {
@@ -1156,8 +1067,6 @@ server.listen(port, config.host, () => {
         updateBullets();
         updatePolygons();
         broadcastPolygonUpdates(wss);
-        //sendPlayerData();
-        //console.log('Players:', Array.from(players.values()));
 
     }, 1000 / 120)
 
