@@ -743,9 +743,20 @@ function updateBullets() {
 
                 hitPolygon.takeDamage(bullet.damage);
 
-                if (hitPolygon.health < bullet.damage) {
+                if (hitPolygon.health <= bullet.damage) {
 
+                    if (hitPolygon.opacity <= 0.99) {
+                        addScorePlayer(bulletId, hitPolygon.score);
+                        broadcast({
 
+                            type: 'bulletHit',
+                            bulletId,
+                            polygonId: hitPolygon.id
+
+                        });
+                    }
+
+                    /*
                     if (hitPolygon.isFading) return;
                     addScorePlayer(bulletId, hitPolygon.score);
                     broadcast({
@@ -755,7 +766,7 @@ function updateBullets() {
                         polygonId: hitPolygon.id
 
                     });
-
+                    */
 
                 }
 
