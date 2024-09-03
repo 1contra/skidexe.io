@@ -937,7 +937,6 @@ function updateLeaderboard(playerName) {
     broadcast({
         type: 'playerData',
         players: leaderboardData,
-        playerName
     });
 }
 
@@ -1073,7 +1072,24 @@ wss.on('connection', (ws) => {
 
         let playerName = player.playerName;
 
-        console.log(`Player name left: ${playerName}`);
+        console.log(`Player left: ${playerName}`);
+
+        if (player) {
+            let playerName = player.playerName;
+            
+            // Remove the player from the map
+            players.delete(id);
+    
+            // Broadcast the player's departure
+            broadcast({
+                type: 'playerLeave',
+                id,
+                playerName
+            });
+    
+            // Update and broadcast the leaderboard
+            updateLeaderboard();
+        }
 
         broadcast({
 
@@ -1084,14 +1100,6 @@ wss.on('connection', (ws) => {
         });
         
         players.delete(id);
-
-        broadcast({
-
-            type: 'playerLeave',
-            id: id,
-            name: playerName
-
-        });
 
         broadcast({
 

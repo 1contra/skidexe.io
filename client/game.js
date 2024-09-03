@@ -428,6 +428,7 @@ export function startGame() {
             else if (data.type === 'playerDisconnect') {
     
                 players.delete(data.id);
+                handlePlayerLeave(data.id);
     
             }
     
@@ -437,9 +438,35 @@ export function startGame() {
             console.log('WebSocket connection closed. Reconnecting...');
             isConnected = false;
             setTimeout(connectWebSocket, 5000);
+            const player = players.get(id);
+
+            if (player) {
+                const playerName = player.playerName;
+                
+                // Remove the player from the game state
+                players.delete(id);
+
+                // Broadcast player leave event to all clients
+                broadcast({
+                    type: 'playerLeave',
+                    id,
+                    playerName
+                });
+
+                // Optionally update the leaderboard
+                updateLeaderboard();
+            }
         };
     
         return ws;
+    }
+
+    function handlePlayerLeave(id) {
+        // Remove player from leaderboardPlayers map
+        leaderboardPlayers.delete(id);
+    
+        // Update and redraw the leaderboard
+        updateLeaderboard();
     }
 
     function formatNumber(num) {
@@ -505,8 +532,6 @@ export function startGame() {
             const fontSize = 20;
             const lineWidth = 5; // Adjust this value for line thickness
 
-            //ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
-
             ctx.font = `${fontSize}px Arial`;
             ctx.fillStyle = 'black';
             ctx.textAlign = 'left';
@@ -550,6 +575,8 @@ export function startGame() {
                 const formattedScore = formatNumber(player.score);
                 ctx.fillStyle = 'black';
                 ctx.fillText(`          ${player.playerName} - ${formattedScore}`, x, playerY + 3);
+
+                
             });
 
         }
