@@ -458,10 +458,21 @@ export function startGame() {
     
     const previousPositions = new Map();
     const targetPositions = new Map();
+    const rotationSpeed = 0.02; // Speed at which the barrel rotates, adjust as needed
 
     const x = canvas.width - 200;
     const y = 20;          // Define y here so it's accessible in both functions
     const lineHeight = 20; // Define lineHeight here so it's accessible in both functions
+
+    function updateBarrelAngle() {
+        // Update each player's barrel angle
+        leaderboardPlayers.forEach(player => {
+            player.barrelAngle = (player.barrelAngle || 0) + rotationSpeed;
+            if (player.barrelAngle >= Math.PI * 2) {
+                player.barrelAngle -= Math.PI * 2; // Keep angle within [0, 2π)
+            }
+        });
+    }
 
     function updateLeaderboard() {
         const playerArray = Array.from(leaderboardPlayers.values());
@@ -1457,6 +1468,7 @@ export function startGame() {
             drawPlayer();
             drawMessages(); 
             drawLeaderboard(ctx);
+            updateBarrelAngle();
             //updateScoreDisplay();
     
         }
