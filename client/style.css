@@ -28,6 +28,14 @@ body {
     border-radius: 10px;
     padding: 10px;
     color: white;
+    display: none; /* Hidden by default */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out; /* Adjust duration as needed */
+}
+
+#chatBox.visible {
+    display: block; /* Ensure it's visible when the class is added */
+    opacity: 1;
 }
 
 #chatInput {
@@ -40,6 +48,22 @@ body {
     padding: 10px;
     box-sizing: border-box;
     resize: none;
+}
+
+#instructionMessage {
+    position: absolute; /* Position relative to the container or viewport */
+    top: 49.8%; /* Center vertically */
+    right: -5px; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Center align the text */
+    font-size: 20px; /* Adjust font size */
+    color: rgb(44, 44, 44); /* Text color */
+    font-family: 'Arial Black', Arial, sans-serif; /* Set font to Arial Black */
+    opacity: 1;
+    transition: opacity 1s ease-in-out; /* Fade effect */
+}
+
+#instructionMessage.hidden {
+    opacity: 0; /* Hide the message */
 }
 
 #changelog {

@@ -3,8 +3,11 @@ const ctx = canvas.getContext('2d');
 const menu = document.getElementById('menu');
 const changelog = document.getElementById('changelog')
 const playerNameInput = document.getElementById('playerName');
+const chatInput = document.getElementById('chatInput');
+const chatBox = document.getElementById('chatBox'); 
+const instructionMessage = document.getElementById('instructionMessage');
+
 const messages = [];
-export let gameStart = false;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const mapColor = '#f0f0f0';
@@ -15,9 +18,10 @@ const playerBarrels = new Map();
 const barrels = [];
 const polygons = []
 let leaderboardPlayers = new Map();
-
 let mapSize = 3000;
 let gridSize = 50;
+
+export let gameStart = false;
 
 const keys = {
     w: false,
@@ -161,31 +165,78 @@ export function startGame() {
     menu.style.display = 'none';
     canvas.style.display = 'block';
     changelog.style.display = 'none';
+    let chatVisible = false;
+    let chatBoxFocused = false; // Variable to track if chatbox is focused
+
+    chatInput.addEventListener('focus', () => {
+        chatBoxFocused = true;
+    });
+    
+    chatInput.addEventListener('blur', () => {
+        chatBoxFocused = false;
+    });
+
     function updateScoreDisplay() {
         const scoreElement = document.getElementById('scoreDisplay');
         scoreElement.textContent = `Score: ${player.score}`;
     }
 
-    chatInput.addEventListener('keydown', (event) => {
+    function toggleChatVisibility() {
+        if (chatVisible) {
+            chatBox.classList.remove('visible');
+            setTimeout(() => {
+                chatBox.style.display = 'none';
+            }, 500);
+        } else {
+            chatBox.style.display = 'block';
+            setTimeout(() => {
+                chatBox.classList.add('visible');
+            }, 10);
+        }
+        chatVisible = !chatVisible;
+
+        /*
+        // Toggle instruction message visibility
+        if (chatVisible) {
+            instructionMessage.classList.add('hidden');
+        } else {
+            instructionMessage.classList.remove('hidden');
+        }
+            */
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (!gameStart) {
+            return;
+        }
+
         if (event.key === 'Enter') {
             event.preventDefault();
-            const message = chatInput.value.trim();
-            chatInput.value = '';
-            
-            if (message.startsWith('/')) {
-                ws.send(JSON.stringify({
-                    type: 'chatCommand',
-                    command: message,
-                    playerId: player.id,
-                    playerX: player.x,
-                    playerY: player.y
-                }));
+            if (chatVisible) {
+                const message = chatInput.value.trim();
+                chatInput.value = '';
+
+                if (message.startsWith('/')) {
+                    ws.send(JSON.stringify({
+                        type: 'chatCommand',
+                        command: message,
+                        playerId: player.id,
+                        playerX: player.x,
+                        playerY: player.y
+                    }));
+                }
+                toggleChatVisibility();
+            } else {
+                toggleChatVisibility();
+                chatInput.focus();
             }
         }
     });
 
     let isConnected = false;
-    
+
+    toggleChatVisibility();
+
     function connectWebSocket() {
         
         if (isConnected) {
@@ -440,22 +491,22 @@ export function startGame() {
             const lineHeight = 15;
             const fontSize = 30;
             const lineWidth = 5;
-            ctx.font = `${fontSize}px Arial`;
+            ctx.font = `${fontSize}px Arial Black`;
             ctx.fillStyle = 'black';
             ctx.textAlign = 'left';
             ctx.lineWidth = 4;
             ctx.strokeStyle = 'black';
             ctx.fillStyle = 'white';
-            ctx.strokeText('LEADERBOARD', x - 40, y);
-            ctx.fillText('LEADERBOARD', x - 40, y);
+            ctx.strokeText('LEADERBOARD', x - 60, y);
+            ctx.fillText('LEADERBOARD', x - 60, y);
             const myId = player.id;
 
             Array.from(targetPositions.keys()).forEach((playerId) => {
                 const targetY = targetPositions.get(playerId);
                 const previousY = previousPositions.get(playerId) || targetY;
                 const playerY = previousY + (targetY - previousY) * 0.1;
-                const fontSize = 14;
-                ctx.font = `${fontSize}px Arial`;
+                const fontSize = 13;
+                ctx.font = `${fontSize}px Arial Black`;
                 previousPositions.set(playerId, playerY);
                 const player = leaderboardPlayers.get(playerId);
 
@@ -480,8 +531,8 @@ export function startGame() {
                 ctx.lineWidth = 4;
                 ctx.strokeStyle = 'black';
                 ctx.fillStyle = 'white';
-                ctx.strokeText(`          ${player.playerName} - ${formattedScore}`, x, playerY + 13);
-                ctx.fillText(`          ${player.playerName} - ${formattedScore}`, x, playerY + 13);
+                ctx.strokeText(`${player.playerName} - ${formattedScore}`, x + 20, playerY + 14);
+                ctx.fillText(`${player.playerName} - ${formattedScore}`, x + 20, playerY + 14);
 
                 
             });
@@ -953,15 +1004,70 @@ export function startGame() {
             ctx.fill();
         });
     }
-    
+
+    const keys = {
+        w: false,
+        a: false,
+        s: false,
+        d: false
+    };
+
+    // Function to handle keydown events
+    function handleKeyDown(event) {
+        if (chatBoxFocused) return; // Do nothing if chatbox is focused
+
+        switch (event.key) {
+            case 'w':
+                if (chatBoxFocused) return;
+                keys.w = true;
+                break;
+            case 'a':
+                if (chatBoxFocused) return;
+                keys.a = true;
+                break;
+            case 's':
+                if (chatBoxFocused) return;
+                keys.s = true;
+                break;
+            case 'd':
+                if (chatBoxFocused) return;
+                keys.d = true;
+                break;
+        }
+    }
+
+    // Function to handle keyup events
+    function handleKeyUp(event) {
+        switch (event.key) {
+            case 'w':
+                keys.w = false;
+                break;
+            case 'a':
+                keys.a = false;
+                break;
+            case 's':
+                keys.s = false;
+                break;
+            case 'd':
+                keys.d = false;
+                break;
+        }
+    }
+
+    // Attach event listeners for keydown and keyup
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
     function updatePlayer() {
         if (!gameStart) return;
         let accelerationX = 0;
         let accelerationY = 0;
-        if (keys.w) accelerationY -= player.speed;
-        if (keys.a) accelerationX -= player.speed;
-        if (keys.s) accelerationY += player.speed;
-        if (keys.d) accelerationX += player.speed;
+        if (!chatBoxFocused) { // Only process movement if chatbox is not focused
+            if (keys.w) accelerationY -= player.speed;
+            if (keys.a) accelerationX -= player.speed;
+            if (keys.s) accelerationY += player.speed;
+            if (keys.d) accelerationX += player.speed;
+        }
         const magnitude = Math.sqrt(accelerationX * accelerationX + accelerationY * accelerationY);
         if (magnitude > 0) {
             accelerationX /= magnitude;
@@ -1215,6 +1321,7 @@ export function startGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     
+    /*
     window.addEventListener('keydown', (e) => {
         if (e.key in keys) keys[e.key] = true;
     });
@@ -1222,6 +1329,7 @@ export function startGame() {
     window.addEventListener('keyup', (e) => {
         if (e.key in keys) keys[e.key] = false;
     });
+    */
     
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
@@ -1287,13 +1395,15 @@ export function startGame() {
             drawGrid();
             drawPolygons(ctx, timestamp);
             drawBullets();
-            updatePlayer();
             updateBullets();
             drawOtherPlayers();
             drawPlayer();
             drawMessages(); 
             drawLeaderboard(ctx);
             updateLeaderboard();
+            updatePlayer();
+            //renderInstructions();
+            //handleChatVisibility();
             //updatePlayerRadius();
             //updateScoreDisplay();
     
