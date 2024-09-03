@@ -1147,7 +1147,7 @@ function handleChatCommand(ws, message) {
                         message: 'Invalid admin password.'
                     }));
                 }
-            } else if (cmd === 'spawn') {
+            } else if (cmd === 'polygon') {
                 if (adminTokens.has(playerId)) {
                     const [sidesStr, radiantStr] = args;
                     const sides = parseInt(sidesStr, 10);
