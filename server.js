@@ -874,7 +874,11 @@ function updatePlayer(id, data) {
         player.radius = data.radius;
         player.playerName = data.playerName;
         player.score = data.score;
-        //player.id = data.id;
+        player.bulletRadius = data.bulletRadius;
+        player.bulletSpeed = data. bulletSpeed;
+        player.bulletBorderColor = data.bulletBorderColor;
+        player.bulletBorderWidth = data.bulletBorderWidth;
+        id;
     }
 }
 
@@ -894,6 +898,11 @@ function broadcastPlayerUpdate(id) {
         barrelBorderColor: player.barrelBorderColor,
         radius: player.radius,
         score: player.score,
+        bulletRadius: player.bulletRadius,
+        bulletSpeed: player.bulletSpeed,
+        name: player.name,
+        bulletBorderColor: player.bulletBorderColor,
+        bulletBorderWidth: player.bulletBorderWidth,
     });
 }
 
@@ -1014,6 +1023,10 @@ wss.on('connection', (ws) => {
         playerName: `Player ${id}`,
         id: id,
         score: 0,
+        bulletRadius: 0,
+        bulletSpeed: 0,
+        bulletBorderColor: '',
+        bulletBorderWidth: 0,
     };
     const defaultBarrel = {
         id,

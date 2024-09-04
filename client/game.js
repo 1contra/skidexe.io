@@ -269,9 +269,9 @@ export function startGame() {
                     radius: player.radius,
                     playerName: player.name,
                     score: player.score,
+                    id: player.id,
     
                 }));
-    
             }
     
             isConnected = true;
@@ -328,9 +328,13 @@ export function startGame() {
                         barrelWidth: data.barrelWidth,
                         barrelColor: data.barrelColor,
                         barrelBorderColor: data.barrelBorderColor,
-                        radius: player.radius,
-                        score: player.score,
-                        playerName: player.name
+                        radius: data.radius,
+                        score: data.score,
+                        playerName: data.name,
+                        bulletRadius: data.bulletRadius,
+                        bulletSpeed: data.bulletSpeed,
+                        bulletBorderColor: data.bulletBorderColor,
+                        bulletBorderWidth: data.bulletBorderWidth,
                     });
     
                     playerBarrels.set(data.id, {
@@ -921,6 +925,7 @@ export function startGame() {
     }
     
     function drawPlayer() {
+        if (player.id !== player.id) return; 
         if (!gameStart) return;
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
@@ -963,24 +968,54 @@ export function startGame() {
         ctx.arc(canvas.width / 2, canvas.height / 2, player.radius, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-    }
+        }
     
-    function drawBullets() {
-        bullets.forEach(bullet => {
-            const isOwnedBySelf = bullet.ownerId === player.id;
-            const bulletColor = isOwnedBySelf ? player.bulletColor : '#ff2a1c';
-            const bulletBorderColor = isOwnedBySelf ? player.bulletBorderColor : '#990900';
-            ctx.strokeStyle = bulletBorderColor;
-            ctx.lineWidth = player.bulletBorderWidth * 2;
-            ctx.beginPath();
-            ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, player.bulletRadius + player.bulletBorderWidth, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.fillStyle = bulletColor;
-            ctx.beginPath();
-            ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, player.bulletRadius, 0, Math.PI * 2);
-            ctx.fill();
-        });
-    }
+    
+        function drawBullets() {
+            bullets.forEach(bullet => {
+                // Get the player who owns the bullet from the players map
+                const owner = players.get(bullet.ownerId);
+                //console.log({players})
+                
+                // If the owner exists, proceed with drawing
+                if (owner) {
+                    const isOwnedBySelf = bullet.ownerId === player.id;
+                    const bulletColor = isOwnedBySelf ? owner.bulletColor : '#ff2a1c';
+                    const bulletBorderColor = isOwnedBySelf ? owner.bulletBorderColor : '#990900';
+                    
+                    ctx.strokeStyle = bulletBorderColor;
+                    ctx.lineWidth = owner.bulletBorderWidth * 2; // Use the owner's bullet border width
+                    ctx.beginPath();
+                    ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, owner.bulletRadius + owner.bulletBorderWidth, 0, Math.PI * 2); // Use the owner's bullet radius
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = bulletColor;
+                    ctx.beginPath();
+                    ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, owner.bulletRadius, 0, Math.PI * 2); // Use the owner's bullet radius
+                    ctx.fill();
+                } 
+
+                const isOwnedBySelf = bullet.ownerId === player.id;
+
+                if (!isOwnedBySelf) return;
+
+                const bulletColor = isOwnedBySelf ? player.bulletColor : '#ff2a1c';
+                const bulletBorderColor = isOwnedBySelf ? player.bulletBorderColor : '#990900';
+                ctx.strokeStyle = bulletBorderColor;
+                ctx.lineWidth = player.bulletBorderWidth * 2;
+                ctx.beginPath();
+                ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, player.bulletRadius + player.bulletBorderWidth, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.fillStyle = bulletColor;
+                ctx.beginPath();
+                ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, player.bulletRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+
+
+            });
+        }
+            
 
     const keys = {
         w: false,
@@ -1078,7 +1113,11 @@ export function startGame() {
                 barrelBorderColor: player.barrelBorderColor,
                 radius: player.radius,
                 score: player.score,
-                playerName: player.name
+                playerName: player.name,
+                bulletRadius: player.bulletRadius,
+                bulletSpeed: player.bulletSpeed,
+                bulletBorderColor: player.bulletBorderColor,
+                bulletBorderWidth: player.bulletBorderWidth,
     
             }));
         } else {
@@ -1107,7 +1146,7 @@ export function startGame() {
                 const dx = player.x - bullet.x;
                 const dy = player.y - bullet.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
-                const expandedPlayerRadius = player.radius;
+                const expandedPlayerRadius = player.radius + 2;
     
                 if (distance < expandedPlayerRadius + player.bulletRadius) {
                     bullets.splice(index, 1);
@@ -1120,7 +1159,7 @@ export function startGame() {
                         hitPolygons.add(polygon);
                         if (polygon.health <= 0) {
                             if (bullet.ownerId === player.id) {
-                                console.log("Polygon destroyed. Player's new score:", player.score);
+                                //console.log("Polygon destroyed. Player's new score:", player.score);
                                 const collisionData = {
                                     type: 'polygonHit',
                                     playerId: player.id,
@@ -1137,7 +1176,7 @@ export function startGame() {
     
                     if (polygon.isFading) return;
                     bullets.splice(index, 1);
-                    console.log("bullet hit polygon")
+                    //console.log("bullet hit polygon")
                     return;
                 }
             });
@@ -1149,7 +1188,7 @@ export function startGame() {
                     const playerDistance = Math.sqrt(playerDx * playerDx + playerDy * playerDy);
                     if (playerDistance < 15 + player.bulletRadius) {
                         bullets.splice(index, 1);
-                        console.log("bullet hit player")
+                        //console.log("bullet hit player")
                         return;
                     }
                 }
@@ -1238,6 +1277,8 @@ export function startGame() {
                 ctx.arc(p.x - player.x + canvas.width / 2, p.y - player.y + canvas.height / 2, p.radius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.stroke();
+
+                //console.log({p})
     
                 const barrel = {
                     angle: p.barrelAngle || 0,
@@ -1384,6 +1425,7 @@ export function startGame() {
             //handleChatVisibility();
             //updatePlayerRadius();
             //updateScoreDisplay();
+            //console.log({players})
     
         }
         requestAnimationFrame(gameLoop);
