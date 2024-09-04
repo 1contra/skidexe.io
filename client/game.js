@@ -158,6 +158,8 @@ const player = {
     },
 };
 
+export { player };
+
 function setRandomPlayerPosition() {
     player.x = Math.random() * (mapSize - player.radius * 2) + player.radius;
     player.y = Math.random() * (mapSize - player.radius * 2) + player.radius;
@@ -436,31 +438,70 @@ export function startGame() {
     }
 
     function formatNumber(num) {
-        if (num >= 1e+36) {
-            return (num / 1e+36).toFixed(1) + 'd'; // Decillion
-        } else if (num >= 1e+33) {
-            return (num / 1e+33).toFixed(1) + 'n'; // Nonillion
-        } else if (num >= 1e+30) {
-            return (num / 1e+30).toFixed(1) + 'o'; // Octillion
-        } else if (num >= 1e+27) {
-            return (num / 1e+27).toFixed(1) + 's'; // Septillion
-        } else if (num >= 1e+24) {
-            return (num / 1e+24).toFixed(1) + 's'; // Sextillion
-        } else if (num >= 1e+21) {
-            return (num / 1e+21).toFixed(1) + 'q'; // Quintillion
-        } else if (num >= 1e+18) {
-            return (num / 1e+18).toFixed(1) + 'q'; // Quadrillion
-        } else if (num >= 1e+15) {
-            return (num / 1e+15).toFixed(1) + 't'; // Trillion
-        } else if (num >= 1e+12) {
-            return (num / 1e+12).toFixed(1) + 't'; // Trillion
-        } else if (num >= 1e+9) {
-            return (num / 1e+9).toFixed(1) + 'b'; // Billion
-        } else if (num >= 1e+6) {
-            return (num / 1e+6).toFixed(1) + 'm'; // Million
-        } else if (num >= 1e+3) {
-            return (num / 1e+3).toFixed(1) + 'k'; // Thousand
-        } else {
+        if (num >= 1e+63) {
+            return (num / 1e+63).toFixed(1) + 'ViG'; // vigintillion
+        }
+        else if (num >= 1e+60) {
+            return (num / 1e+60).toFixed(1) + 'NoV'; // novemdecillion
+        }
+        else if (num >= 1e+57) {
+            return (num / 1e+57).toFixed(1) + 'OcToD'; // octodecillion
+        }
+        else if (num >= 1e+54) {
+            return (num / 1e+54).toFixed(1) + 'SePtD'; // septendecillion
+        }
+        else if (num >= 1e+51) {
+            return (num / 1e+51).toFixed(1) + 'SxD'; // sexdecillion
+        }
+        else if (num >= 1e+48) {
+            return (num / 1e+48).toFixed(1) + 'QiD'; // quindecillion
+        }
+        else if (num >= 1e+45) {
+            return (num / 1e+45).toFixed(1) + 'QatD'; // quattuordecillion
+        }
+        else if (num >= 1e+41) {
+            return (num / 1e+41).toFixed(1) + 'TrD'; // tredecillion
+        }
+        else if (num >= 1e+39) {
+            return (num / 1e+39).toFixed(1) + 'DuO'; // duodecillion
+        } 
+        else if (num >= 1e+36) {
+            return (num / 1e+36).toFixed(1) + 'UnD'; // undecillion
+        } 
+        else if (num >= 1e+33) {
+            return (num / 1e+33).toFixed(1) + 'DeC'; // Decillion
+        } 
+        else if (num >= 1e+30) {
+            return (num / 1e+30).toFixed(1) + 'NoN'; // Nonillion
+        } 
+        else if (num >= 1e+27) {
+            return (num / 1e+27).toFixed(1) + 'OcT'; // Octillion
+        } 
+        else if (num >= 1e+24) {
+            return (num / 1e+24).toFixed(1) + 'SeP'; // Septillion
+        } 
+        else if (num >= 1e+21) {
+            return (num / 1e+21).toFixed(1) + 'SeX'; // Sextillion
+        } 
+        else if (num >= 1e+18) {
+            return (num / 1e+18).toFixed(1) + 'Qi'; // Quintillion
+        } 
+        else if (num >= 1e+15) {
+            return (num / 1e+15).toFixed(1) + 'Qa'; // Quadrillion
+        } 
+        else if (num >= 1e+12) {
+            return (num / 1e+12).toFixed(1) + 'T'; // Trillion
+        } 
+        else if (num >= 1e+9) {
+            return (num / 1e+9).toFixed(1) + 'B'; // Billion
+        } 
+        else if (num >= 1e+6) {
+            return (num / 1e+6).toFixed(1) + 'M'; // Million
+        } 
+        else if (num >= 1e+3) {
+            return (num / 1e+3).toFixed(1) + 'K'; // Thousand
+        } 
+        else {
             return num.toString();
         }
     }
@@ -1049,8 +1090,8 @@ export function startGame() {
     
         const baseBarrelLength = 20;
         const baseBarrelWidth = 7;
-        const barrelGrowthRate = 0.5; // Adjusted growth rate for barrel
-        const maxBarrelLength = 60;
+        const barrelGrowthRate = 1; // Adjusted growth rate for barrel
+        const maxBarrelLength = 300;
         const maxBarrelWidth = 15;
     
         barrel.length = Math.min(baseBarrelLength + barrelGrowthRate * Math.log(player.score + 1), maxBarrelLength);
