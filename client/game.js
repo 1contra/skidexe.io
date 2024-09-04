@@ -243,6 +243,195 @@ export function startGame() {
     let isConnected = false;
 
     function connectWebSocket() {
+        if (isConnected) {
+            console.log('WebSocket connection already established.');
+            return;
+        }
+    
+        const ws = new WebSocket('ws://localhost:3000');
+    
+        ws.onopen = () => {
+            console.log('Connected to WebSocket server');
+            if (gameStart) {
+                sendPlayerInitialization(ws);
+            }
+            isConnected = true;
+        };
+    
+        ws.onerror = (error) => {
+            console.error('WebSocket Error: ', error);
+        };
+    
+        ws.onmessage = handleMessage;
+    
+        ws.onclose = () => {
+            console.log('WebSocket connection closed. Reconnecting...');
+            isConnected = false;
+            setTimeout(connectWebSocket, 5000);
+            handlePlayerLeaveOnDisconnect();
+        };
+    
+        return ws;
+    }
+    
+    function sendPlayerInitialization(ws) {
+        ws.send(JSON.stringify({
+            type: 'initializePlayer',
+            x: player.x,
+            y: player.y,
+            angle: player.angle,
+            color: player.color,
+            borderColor: player.borderColor,
+            barrelLength: player.barrelLength,
+            barrelWidth: player.barrelWidth,
+            barrelColor: player.barrelColor,
+            barrelBorderColor: player.barrelBorderColor,
+            radius: player.radius,
+            playerName: player.name,
+            score: player.score,
+            id: player.id,
+        }));
+    }
+    
+    function handleMessage(event) {
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+            case 'welcome':
+                handleWelcome(data);
+                break;
+            case 'playerData':
+                handlePlayerData(data);
+                break;
+            case 'playerDisconnect':
+                handlePlayerDisconnect(data);
+                break;
+            case 'playerJoin':
+                handlePlayerJoin(data);
+                break;
+            case 'playerUpdate':
+                handlePlayerUpdate(data);
+                break;
+            case 'bulletUpdate':
+                handleBulletUpdate(data);
+                break;
+            case 'bulletHit':
+                handleBulletHit(data);
+                break;
+            case 'updateBarrels':
+                handleUpdateBarrels(data);
+                break;
+            case 'scoreUpdate':
+                handleScoreUpdate(data);
+                break;
+            case 'updatePolygons':
+                handleUpdatePolygons(data);
+                break;
+        }
+    }
+    
+    function handleWelcome(data) {
+        player.id = data.id;
+    }
+    
+    function handlePlayerData(data) {
+        data.players.forEach(p => leaderboardPlayers.set(p.id, p));
+        updateLeaderboard();
+    }
+    
+    function handlePlayerDisconnect(data) {
+        players.delete(data.id);
+        handlePlayerLeave(data.id);
+        addMessage(`Player ${data.playerName} left`);
+    }
+    
+    function handlePlayerJoin(data) {
+        addMessage(`Player ${data.playerName} joined`);
+    }
+    
+    function handlePlayerUpdate(data) {
+        if (data.id !== player.id) {
+            players.set(data.id, {
+                x: data.x,
+                y: data.y,
+                angle: data.angle,
+                color: data.color,
+                borderColor: data.borderColor,
+                barrelLength: data.barrelLength,
+                barrelWidth: data.barrelWidth,
+                barrelColor: data.barrelColor,
+                barrelBorderColor: data.barrelBorderColor,
+                radius: data.radius,
+                score: data.score,
+                playerName: data.name,
+                bulletRadius: data.bulletRadius,
+                bulletSpeed: data.bulletSpeed,
+                bulletBorderColor: data.bulletBorderColor,
+                bulletBorderWidth: data.bulletBorderWidth,
+            });
+    
+            playerBarrels.set(data.id, {
+                angle: data.angle,
+                length: data.barrelLength,
+                width: data.barrelWidth,
+                color: data.barrelColor,
+                borderColor: data.barrelBorderColor
+            });
+        }
+    }
+    
+    function handleBulletUpdate(data) {
+        bullets.push({
+            id: data.id,
+            x: data.x,
+            y: data.y,
+            speedX: data.speedX,
+            speedY: data.speedY,
+            ownerId: data.ownerId,
+            color: data.color,
+            damage: data.damage
+        });
+    }
+    
+    function handleBulletHit(data) {
+        const index = bullets.findIndex(b => b.id === data.bulletId);
+        if (index > -1) {
+            bullets.splice(index, 1);
+        }
+    }
+    
+    function handleUpdateBarrels(data) {
+        barrels.length = 0;
+        barrels.push(...data.barrels);
+    }
+    
+    function handleScoreUpdate(data) {
+        if (data.playerId === player.id) {
+            player.score = data.score;
+            updateScoreDisplay();
+        }
+    }
+    
+    function handleUpdatePolygons(data) {
+        polygons.length = 0;
+        polygons.push(...data.data);
+    }
+    
+    function handlePlayerLeaveOnDisconnect() {
+        const player = players.get(id);
+        if (player) {
+            const playerName = player.playerName;
+            players.delete(id);
+            broadcast({
+                type: 'playerLeave',
+                id,
+                playerName
+            });
+            updateLeaderboard();
+        }
+    }
+
+    /*
+    function connectWebSocket() {
         
         if (isConnected) {
             console.log('WebSocket connection already established.');
@@ -251,6 +440,8 @@ export function startGame() {
         const ws = new WebSocket('ws://localhost:3000');
     
         ws.onopen = () => {
+
+            
             console.log('Connected to WebSocket server');
     
             if (gameStart) {
@@ -446,6 +637,7 @@ export function startGame() {
     
         return ws;
     }
+    */
 
     function handlePlayerLeave(id) {
         leaderboardPlayers.delete(id);
@@ -1500,11 +1692,6 @@ export function startGame() {
     }
     requestAnimationFrame(gameLoop);
     
-    gameLoop();
-    
-
-
-
     const ws = connectWebSocket(); 
     gameLoop();
 }
