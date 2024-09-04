@@ -430,229 +430,36 @@ export function startGame() {
         }
     }
 
-    /*
-    function connectWebSocket() {
-        
-        if (isConnected) {
-            console.log('WebSocket connection already established.');
-        }
-        
-        const ws = new WebSocket('ws://localhost:3000');
-    
-        ws.onopen = () => {
-
-            
-            console.log('Connected to WebSocket server');
-    
-            if (gameStart) {
-    
-                ws.send(JSON.stringify({
-                    type: 'initializePlayer',
-                    x: player.x,
-                    y: player.y,
-                    angle: player.angle,
-                    color: player.color,
-                    borderColor: player.borderColor,
-                    barrelLength: player.barrelLength,
-                    barrelWidth: player.barrelWidth,
-                    barrelColor: player.barrelColor,
-                    barrelBorderColor: player.barrelBorderColor,
-                    radius: player.radius,
-                    playerName: player.name,
-                    score: player.score,
-                    id: player.id,
-    
-                }));
-            }
-    
-            isConnected = true;
-        };
-    
-        ws.onerror = (error) => {
-            console.error('WebSocket Error: ', error);
-        };
-    
-        ws.onmessage = (event) => {
-    
-            const data = JSON.parse(event.data);
-    
-            if (data.type === 'welcome') {
-    
-                player.id = data.id;
-    
-            }
-
-            else if (data.type === 'playerData') {
-                data.players.forEach(player => {
-                    leaderboardPlayers.set(player.id, player);
-                });
-                updateLeaderboard();
-            }
-    
-            else if (data.type === 'playerDisconnect') {
-    
-                players.delete(data.id);
-                handlePlayerLeave(data.id);
-    
-                addMessage(`Player ${data.playerName} left`);
-    
-            } 
-    
-            else if (data.type === 'playerJoin') {
-    
-                addMessage(`Player ${data.playerName} joined`);
-    
-            } 
-    
-            else if (data.type === 'playerUpdate') {
-    
-                if (data.id !== player.id) {
-    
-                    players.set(data.id, {
-                        //id: data.id,
-                        x: data.x,
-                        y: data.y,
-                        angle: data.angle,
-                        color: data.color,
-                        borderColor: data.borderColor,
-                        barrelLength: data.barrelLength,
-                        barrelWidth: data.barrelWidth,
-                        barrelColor: data.barrelColor,
-                        barrelBorderColor: data.barrelBorderColor,
-                        radius: data.radius,
-                        score: data.score,
-                        playerName: data.name,
-                        bulletRadius: data.bulletRadius,
-                        bulletSpeed: data.bulletSpeed,
-                        bulletBorderColor: data.bulletBorderColor,
-                        bulletBorderWidth: data.bulletBorderWidth,
-                    });
-    
-                    playerBarrels.set(data.id, {
-                        angle: data.angle,
-                        length: data.barrelLength,
-                        width: data.barrelWidth,
-                        color: data.barrelColor,
-                        borderColor: data.barrelBorderColor
-                    });
-    
-                }
-    
-            } 
-    
-            else if (data.type === 'bulletUpdate') {
-    
-                bullets.push(data.id, {
-    
-                    x: data.x,
-                    y: data.y,
-                    speedX: data.speedX,
-                    speedY: data.speedY,
-                    ownerId: data.ownerId,
-                    color: data.color,
-                    bullet: data.damage
-    
-                });
-    
-            }
-    
-            else if (data.type === 'bulletHit') {
-    
-                const { bulletId } = data;
-        
-                const index = bullets.findIndex(b => b.id === bulletId);
-                if (index > -1) {
-                    
-                    bullets.splice(index, 1);
-    
-                }
-    
-            } 
-    
-            else if (data.type === 'updateBarrels') {
-    
-                barrels.length = 0;
-                data.barrels.forEach(barrel => barrels.push(barrel));
-            }
-    
-            
-            else if (data.type === 'scoreUpdate') {
-                const { playerId, score } = data;
-        
-                if (playerId === player.id) {
-                    player.score = score;
-                    updateScoreDisplay();
-                }
-            }
-    
-            else if (data.type === 'updatePolygons') {
-    
-                polygons.length = 0;
-                data.data.forEach(polygon => {
-                    //console.log(`Polygon at (${polygon.x}, ${polygon.y}) with ${polygon.sides} sides.`);
-    
-                    polygons.push({
-    
-                        x: polygon.x,
-                        y: polygon.y,
-                        angle: polygon.angle,
-                        sides: polygon.sides,
-                        radius: polygon.radius,
-                        color: polygon.color,
-                        score: polygon.score,
-                        borderColor: polygon.borderColor,
-                        speed: polygon.speed,
-                        health: polygon.health,
-                        opacity: polygon.opacity,
-                        isFading: polygon.isFading,
-                        baseHealth: polygon.baseHealth,
-                        radiant: polygon.radiant,
-    
-    
-                    });
-    
-                });
-    
-            }
-    
-        };
-    
-        ws.onclose = () => {
-            console.log('WebSocket connection closed. Reconnecting...');
-            isConnected = false;
-            setTimeout(connectWebSocket, 5000);
-            const player = players.get(id);
-
-            if (player) {
-                const playerName = player.playerName;
-                players.delete(id);
-                broadcast({
-                    type: 'playerLeave',
-                    id,
-                    playerName
-                });
-                updateLeaderboard();
-            }
-        };
-    
-        return ws;
-    }
-    */
-
     function handlePlayerLeave(id) {
         leaderboardPlayers.delete(id);
         updateLeaderboard();
     }
 
     function formatNumber(num) {
-        if (num >= 1e12) {
-            return (num / 1e12).toFixed(1) + 't'; // Trillion
-        } else if (num >= 1e9) {
-            return (num / 1e9).toFixed(1) + 'b'; // Billion
-        } else if (num >= 1e6) {
-            return (num / 1e6).toFixed(1) + 'm'; // Million
-        } else if (num >= 1e3) {
-            return (num / 1e3).toFixed(1) + 'k'; // Thousand
+        if (num >= 1e+36) {
+            return (num / 1e+36).toFixed(1) + 'd'; // Decillion
+        } else if (num >= 1e+33) {
+            return (num / 1e+33).toFixed(1) + 'n'; // Nonillion
+        } else if (num >= 1e+30) {
+            return (num / 1e+30).toFixed(1) + 'o'; // Octillion
+        } else if (num >= 1e+27) {
+            return (num / 1e+27).toFixed(1) + 's'; // Septillion
+        } else if (num >= 1e+24) {
+            return (num / 1e+24).toFixed(1) + 's'; // Sextillion
+        } else if (num >= 1e+21) {
+            return (num / 1e+21).toFixed(1) + 'q'; // Quintillion
+        } else if (num >= 1e+18) {
+            return (num / 1e+18).toFixed(1) + 'q'; // Quadrillion
+        } else if (num >= 1e+15) {
+            return (num / 1e+15).toFixed(1) + 't'; // Trillion
+        } else if (num >= 1e+12) {
+            return (num / 1e+12).toFixed(1) + 't'; // Trillion
+        } else if (num >= 1e+9) {
+            return (num / 1e+9).toFixed(1) + 'b'; // Billion
+        } else if (num >= 1e+6) {
+            return (num / 1e+6).toFixed(1) + 'm'; // Million
+        } else if (num >= 1e+3) {
+            return (num / 1e+3).toFixed(1) + 'k'; // Thousand
         } else {
             return num.toString();
         }
@@ -831,6 +638,7 @@ export function startGame() {
         '10': '#09040a'
     };
     
+    /*
     const oscillationSettings = {
         0: { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
         1: { colorAdjustment: 20, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
@@ -843,6 +651,31 @@ export function startGame() {
         8: { colorAdjustment: 300, oscillationRange: 2.2, oscillationSpeed: 0.007, tpLevel: 0.8 },
         9: { colorAdjustment: 350, oscillationRange: 2.4, oscillationSpeed: 0.008, tpLevel: 0.9},
         10: { colorAdjustment: 400, oscillationRange: 4, oscillationSpeed: 0.01, tpLevel: .5 },
+    };
+    */
+
+    const oscillationSettings = {
+        0: { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
+        1: { colorAdjustment: 20, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
+        2: { colorAdjustment: 40, oscillationRange: 1, oscillationSpeed: 0.001, tpLevel: 0.2 },
+        3: { colorAdjustment: 60, oscillationRange: 1.2, oscillationSpeed: 0.002, tpLevel: 0.3 },
+        4: { colorAdjustment: 100, oscillationRange: 1.4, oscillationSpeed: 0.003, tpLevel: 0.4 },
+        5: { colorAdjustment: 150, oscillationRange: 1.6, oscillationSpeed: 0.004, tpLevel: 0.5 },
+        6: { colorAdjustment: 200, oscillationRange: 1.8, oscillationSpeed: 0.005, tpLevel: 0.6 },
+        7: { colorAdjustment: 250, oscillationRange: 2, oscillationSpeed: 0.006, tpLevel: 0.7 },
+        8: { colorAdjustment: 300, oscillationRange: 2.2, oscillationSpeed: 0.007, tpLevel: 0.8 },
+        9: { colorAdjustment: 350, oscillationRange: 2.4, oscillationSpeed: 0.008, tpLevel: 0.9 },
+        10: { colorAdjustment: 400, oscillationRange: 4, oscillationSpeed: 0.01, tpLevel: 0.5 },
+        11: { colorAdjustment: 450, oscillationRange: 4.2, oscillationSpeed: 0.012, tpLevel: 0.6 },
+        12: { colorAdjustment: 500, oscillationRange: 4.4, oscillationSpeed: 0.014, tpLevel: 0.7 },
+        13: { colorAdjustment: 550, oscillationRange: 4.6, oscillationSpeed: 0.016, tpLevel: 0.8 },
+        14: { colorAdjustment: 600, oscillationRange: 4.8, oscillationSpeed: 0.018, tpLevel: 0.9 },
+        15: { colorAdjustment: 650, oscillationRange: 5, oscillationSpeed: 0.02, tpLevel: 1.0 },
+        16: { colorAdjustment: 700, oscillationRange: 5.2, oscillationSpeed: 0.022, tpLevel: 1.1 },
+        17: { colorAdjustment: 750, oscillationRange: 5.4, oscillationSpeed: 0.024, tpLevel: 1.2 },
+        18: { colorAdjustment: 800, oscillationRange: 5.6, oscillationSpeed: 0.026, tpLevel: 1.3 },
+        19: { colorAdjustment: 850, oscillationRange: 5.8, oscillationSpeed: 0.028, tpLevel: 1.4 },
+        20: { colorAdjustment: 900, oscillationRange: 6, oscillationSpeed: 0.03, tpLevel: 1.5 }
     };
     
     function hexToRgb(hex) {
@@ -1028,6 +861,46 @@ export function startGame() {
                 ctx.strokeStyle = darkenColor(color, 0.7);
             } else if (polygon.radiant === 10) {
                 const color = adjustColor(baseColor, timestamp, 400);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 11) {
+                const color = adjustColor(baseColor, timestamp, 450);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 12) {
+                const color = adjustColor(baseColor, timestamp, 500);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 13) {
+                const color = adjustColor(baseColor, timestamp, 550);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 14) {
+                const color = adjustColor(baseColor, timestamp, 600);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 15) {
+                const color = adjustColor(baseColor, timestamp, 650);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 16) {
+                const color = adjustColor(baseColor, timestamp, 700);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 17) {
+                const color = adjustColor(baseColor, timestamp, 750);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 18) {
+                const color = adjustColor(baseColor, timestamp, 800);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 19) {
+                const color = adjustColor(baseColor, timestamp, 850);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = darkenColor(color, 0.7);
+            } else if (polygon.radiant === 10) {
+                const color = adjustColor(baseColor, timestamp, 900);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             }
