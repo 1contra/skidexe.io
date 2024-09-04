@@ -21,6 +21,7 @@ let leaderboardPlayers = new Map();
 let mapSize = 3000;
 let gridSize = 50;
 
+export { polygons }
 export let gameStart = false;
 
 const keys = {
@@ -1600,6 +1601,7 @@ export function startGame() {
             //updatePlayerRadius();
             //updateScoreDisplay();
             //console.log({players})
+            console.log(polygons);
     
         }
         requestAnimationFrame(gameLoop);
