@@ -650,7 +650,7 @@ export function startGame() {
         7: { colorAdjustment: 250, oscillationRange: 2, oscillationSpeed: 0.006, tpLevel: 0.7 },
         8: { colorAdjustment: 300, oscillationRange: 2.2, oscillationSpeed: 0.007, tpLevel: 0.8 },
         9: { colorAdjustment: 350, oscillationRange: 2.4, oscillationSpeed: 0.008, tpLevel: 0.9},
-        10: { colorAdjustment: 400, oscillationRange: 4, oscillationSpeed: 0.01, tpLevel: 1 },
+        10: { colorAdjustment: 400, oscillationRange: 4, oscillationSpeed: 0.01, tpLevel: .5 },
     };
     
     function hexToRgb(hex) {
@@ -762,6 +762,11 @@ export function startGame() {
             ctx.stroke();
             ctx.restore();
         }
+
+        // Draw triangle spikes if polygon is radiant 10
+        if (polygon.radiant === 10) {
+            drawSpikes(ctx, polygon, timestamp);
+        }
     
         ctx.beginPath();
         for (let i = 0; i < polygon.sides; i++) {
@@ -860,6 +865,71 @@ export function startGame() {
         ctx.fill();
     
     }
+
+    function drawSpikes(ctx, polygon, timestamp) {
+        const baseColor = polygonColors[polygon.sides];
+        const settings = oscillationSettings[polygon.radiant] || { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0 };
+        const { colorAdjustment, oscillationRange, oscillationSpeed, tpLevel } = settings;
+        const minSizeFactor = 1; 
+        const maxSizeFactor = 1 + oscillationRange;
+        const sizeFactor = minSizeFactor + (maxSizeFactor - minSizeFactor) * (0.5 * (Math.sin(timestamp * oscillationSpeed) + 1));
+        const largerRadius = polygon.radius * sizeFactor;
+        const numSpikes = polygon.sides;
+        const spikeCount = polygon.sides;; // Number of spikes
+        //const spikeLength = polygon.radius * 1.5;
+        const spikeWidth = polygon.radius / 4;
+        const angleStep = (2 * Math.PI) / numSpikes;
+        const spinSpeed = 0.01; // Speed of spinning
+        const rotationSpeed = 0.002; // Speed of rotation
+
+        // Function to convert hex color to RGBA
+        function hexToRgba(hex, alpha) {
+            let r = parseInt(hex.slice(1, 3), 16);
+            let g = parseInt(hex.slice(3, 5), 16);
+            let b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+    
+        ctx.save();
+        ctx.translate(0, 0); // Center of the polygon
+
+        // Determine the current rotation angle based on the timestamp
+        let rotationAngle = timestamp * rotationSpeed;
+
+        let spikeLength = 20; // Length from the center to the tip of the triangle
+        const baseLength = 10;  // Length of the base of the triangle, closer to the center
+        const fasterRotationSpeed = 0.1; // Faster rotation speed for the second set
+
+        for (let i = 0; i < spikeCount; i++) {
+            const angle = i * angleStep + rotationAngle;
+
+            // Calculate the tip point of the triangle (long end pointing outward)
+            const xTip = Math.cos(angle) * (polygon.radius + spikeLength);
+            const yTip = Math.sin(angle) * (polygon.radius + spikeLength);
+
+            // Calculate the base points of the triangle (short end towards the center)
+            const xBase1 = Math.cos(angle + angleStep / 2) * (polygon.radius);
+            const yBase1 = Math.sin(angle + angleStep / 2) * (polygon.radius);
+
+            const xBase2 = Math.cos(angle - angleStep / 2) * (polygon.radius);
+            const yBase2 = Math.sin(angle - angleStep / 2) * (polygon.radius);
+
+            ctx.beginPath();
+            ctx.moveTo(xTip, yTip); // Tip of the triangle (pointy end)
+            ctx.lineTo(xBase1, yBase1); // One base point of the triangle
+            ctx.lineTo(xBase2, yBase2); // The other base point of the triangle
+            ctx.closePath(); // Complete the triangle
+            ctx.lineWidth = spikeWidth; // Adjust line width if needed
+            const color = adjustColor(baseColor, timestamp, colorAdjustment);
+            ctx.strokeStyle = darkenColor(color, 0.5);
+            ctx.stroke();
+            const color2 = darkenColor(baseColor, timestamp, colorAdjustment);
+            ctx.fillStyle = brightenColor(color2, 0.8); // Optional: fill color
+            ctx.fill(); // Fill the triangle with color
+        }
+
+        ctx.restore();
+    }
     
     function drawRoundedRect(x, y, width, height, radius) {
         ctx.beginPath();
@@ -899,29 +969,27 @@ export function startGame() {
     }
 
     function updatePlayerRadius(player) {
-        // Define a base radius and a growth factor
-        const baseRadius = 15; // Starting radius
-        const growthFactor = 1; // How much the radius increases per point of score
+        const baseRadius = 15;
+        const growthRate = 0.5; // Adjusted growth rate for more gradual growth
+        const maxRadius = 100;
     
-        // Calculate the new radius based on the player's score
-        player.radius = baseRadius + growthFactor * Math.log(player.score + 1);
-        
-
-        const baseBulletRadius = 7; // Starting radius for bullets
-        const bulletGrowthFactor = 1; // Controls the growth of bullet radius
-
-        // Calculate the new bullet radius based on the player's score
-        player.bulletRadius = baseBulletRadius + bulletGrowthFactor * Math.log(player.score + 1);
-
-        // Define base and growth factors for the barrel
-        const baseBarrelLength = 20; // Starting length for the barrel
-        const baseBarrelWidth = 7;   // Starting width for the barrel
-        const barrelGrowthFactor = 1; // Controls how much the barrel size increases
-
-        // Calculate the new barrel dimensions based on the player's score
-        barrel.length = baseBarrelLength + barrelGrowthFactor * Math.log(player.score + 1);
-        barrel.width = baseBarrelWidth + barrelGrowthFactor * Math.log(player.score + 1);
-
+        // Using logarithm with a controlled growth
+        player.radius = Math.min(baseRadius + growthRate * Math.log(player.score + 1), maxRadius);
+    
+        const baseBulletRadius = 7;
+        const bulletGrowthRate = 0.5; // Adjusted growth rate for bullets
+        const maxBulletRadius = 15;
+    
+        player.bulletRadius = Math.min(baseBulletRadius + bulletGrowthRate * Math.log(player.score + 1), maxBulletRadius);
+    
+        const baseBarrelLength = 20;
+        const baseBarrelWidth = 7;
+        const barrelGrowthRate = 0.5; // Adjusted growth rate for barrel
+        const maxBarrelLength = 60;
+        const maxBarrelWidth = 15;
+    
+        barrel.length = Math.min(baseBarrelLength + barrelGrowthRate * Math.log(player.score + 1), maxBarrelLength);
+        barrel.width = Math.min(baseBarrelWidth + barrelGrowthRate * Math.log(player.score + .5), maxBarrelWidth);
     }
     
     function drawPlayer() {

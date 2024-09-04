@@ -297,9 +297,8 @@ class Decagon extends Polygon {
     }
 }
 
-// Rarity configuration
-/*const polygonTypes = [
-    { type: 'triangle', rarity: 0.5 },
+const polygonTypes = [
+    { type: 'triangle', rarity: 1 },
     { type: 'square', rarity: 0.3 },
     { type: 'pentagon', rarity: 0.1 },
     { type: 'hexagon', rarity: 0.05 },
@@ -307,8 +306,9 @@ class Decagon extends Polygon {
     { type: 'octagon', rarity: 0.01 },
     { type: 'nonagon', rarity: 0.005 },
     { type: 'decagon', rarity: 0.002 }
-];*/
+];
 
+/*
 const polygonTypes = [
     { type: 'triangle', rarity: 1 },
     { type: 'square', rarity: 0.8 },
@@ -319,7 +319,9 @@ const polygonTypes = [
     { type: 'nonagon', rarity: 0.02 },
     { type: 'decagon', rarity: 0.01 }
 ];
+*/
 
+/*
 const radiantVal = {
     triangle: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
     square: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
@@ -329,6 +331,18 @@ const radiantVal = {
     octagon: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
     nonagon: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
     decagon: [0.7, 0.2, 0.15, 0.1, 0.05, 0.03, 0.02, 0.01, 0.004, 0.003, 0.001],
+};
+*/
+
+const radiantVal = {
+    triangle: [2, 0.1, 0.05, 0.01, 0.005, 0.0005, 0.0001, 0.00005, 0.00001, 0.000005, 0.000001],
+    square: [2, 0.1, 0.05, 0.01, 0.005, 0.0005, 0.0001, 0.00005, 0.00001, 0.000005, 0.000001],
+    pentagon: [2, 0.1, 0.05, 0.01, 0.005, 0.0005, 0.0001, 0.00005, 0.00001, 0.000005, 0.000001],
+    hexagon: [2, 0.1, 0.05, 0.01, 0.005, 0.0005, 0.0001, 0.00005, 0.00001, 0.000005, 0.000001],
+    heptagon: [2, 0.1, 0.05, 0.01, 0.005, 0.0005, 0.0001, 0.00005, 0.00001, 0.000005, 0.000001],
+    octagon: [2, 0.1, 0.05, 0.01, 0.005, 0.0005, 0.0001, 0.00005, 0.00001, 0.000005, 0.000001],
+    nonagon: [2, 0.1, 0.05, 0.01, 0.005, 0.0005, 0.0001, 0.00005, 0.00001, 0.000005, 0.000001],
+    decagon: [2, 0.1, 0.05, 0.01, 0.005, 0.0005, 0.0001, 0.00005, 0.00001, 0.000005, 0.000001],
 };
 
 const polygonColors = {
@@ -394,7 +408,7 @@ const polygonScore = {
     'heptagon': 10000,
     'octagon': 250000,
     'nonagon': 500000,
-    'decagon': 10000000
+    'decagon': 5600033404
 };
 
 const polygonRadius = {
@@ -412,14 +426,14 @@ const radiantScoreMultipliers = {
     0: 1,
     1: 2,
     2: 4,
-    3: 8,
-    4: 16,
-    5: 32,
-    6: 64,
-    7: 128,
-    8: 256,
-    9: 512,
-    10: 1024
+    3: 16,
+    4: 46,
+    5: 82,
+    6: 223,
+    7: 568,
+    8: 1024,
+    9: 2204,
+    10: 4482
 };
 
 const scoreInterpolations = new Map();
