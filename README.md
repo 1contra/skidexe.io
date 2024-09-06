@@ -9,6 +9,7 @@ any help is appreciated
 
 start game with with `pnpm dev`
 
+the game is at [http://127.0.0.1:3000]
 
 
 
