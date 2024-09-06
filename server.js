@@ -716,11 +716,8 @@ function spawnPolygon() {
 }
 
 function spawnPolygonADMIN(sides, radiant, playerX, playerY) {
-    const type = getPolygonTypeBySides(sides); // Map sides to type
-
-    // Calculate radius based on sides and radiant (you may adjust the formula)
-    const radius = polygonRadius[type] || 10; // Default to 10 if type is unknown
-    
+    const type = getPolygonTypeBySides(sides);
+    const radius = polygonRadius[type] || 10;
     const color = polygonColors[type] || '#FFFFFF';
     const borderColor = borderColors[type] || '#000000';
     const speed = polygonSpeed[type] || 1;
@@ -920,7 +917,6 @@ function broadcastBarrels() {
     }));
     
     //console.log('Broadcasting barrels:', barrelData); // Debug log
-
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({ type: 'updateBarrels', barrels: barrelData }));
@@ -1117,7 +1113,7 @@ wss.on('connection', (ws) => {
                 updatePlayer(id, data);
                 broadcastPlayerUpdate(id, data);
                 broadcastPlayerJoin(id, data.playerName);
-                updateLeaderboard(); // Update leaderboard on new player join
+                updateLeaderboard();
                 //console.log(`Player joined ${data.playerName}`)
                 break;
 
@@ -1201,36 +1197,26 @@ wss.on('connection', (ws) => {
 
 function handleChatCommand(ws, message) {
     try {
-        // Parse the JSON message
-        const { command, playerId, playerX, playerY } = JSON.parse(message);
-        
+        const { command, playerId, playerX, playerY } = JSON.parse(message); 
         console.log("Received command:", command);
         console.log("Player ID:", playerId);
         console.log("Player X:", playerX);
         console.log("Player Y:", playerY);
         
         if (command.startsWith('/')) {
-            const [cmd, ...args] = command.slice(1).split(' ');
+            const password = command.slice(1); // Extract the password from the command
 
-            if (cmd === 'setAdmin' && args[0]) {
-                const password = args[0];
+            if (password === process.env.ADMIN_PASSWORD) {
+                adminTokens.set(playerId, true);
+                console.log(`Player ${playerId} got admin`);
+                ws.send(JSON.stringify({
+                    type: 'adminCommandResponse',
+                    message: 'You are now an admin!'
+                }));
+            } else if (adminTokens.has(playerId)) { // Check if the player is already an admin for other commands
+                const [cmd, ...args] = command.slice(1).split(' ');
 
-                if (password === process.env.ADMIN_PASSWORD) { // Check password from environment variable
-                    adminTokens.set(playerId, true);
-                    console.log(`Player ${playerId} got admin`);
-                    ws.send(JSON.stringify({
-                        type: 'adminCommandResponse',
-                        message: 'You are now an admin!'
-                    }));
-                } else {
-                    console.log("Player did not get admin");
-                    ws.send(JSON.stringify({
-                        type: 'adminCommandResponse',
-                        message: 'Invalid admin password.'
-                    }));
-                }
-            } else if (cmd === 'polygon') {
-                if (adminTokens.has(playerId)) {
+                if (cmd === 'polygon') {
                     const [sidesStr, radiantStr] = args;
                     const sides = parseInt(sidesStr, 10);
                     const radiant = parseInt(radiantStr, 10);
@@ -1238,9 +1224,7 @@ function handleChatCommand(ws, message) {
                     if (Number.isInteger(sides) && Number.isInteger(radiant)) {
                         const polygon = spawnPolygonADMIN(sides, radiant, playerX, playerY);
                         if (polygon) {
-                            polygons.push(polygon); // Add new polygon to the array
-                            
-                            // Broadcast the new polygon to all clients
+                            polygons.push(polygon);
                             broadcast({
                                 type: 'spawnPolygon',
                                 sides,
@@ -1274,15 +1258,14 @@ function handleChatCommand(ws, message) {
                     }
                 } else {
                     ws.send(JSON.stringify({
-                        type: 'adminCommandResponse',
-                        message: 'You are not an admin.'
+                        type: 'chatResponse',
+                        message: `Command received: ${command}`
                     }));
                 }
             } else {
-                // Handle regular chat commands here
                 ws.send(JSON.stringify({
                     type: 'chatResponse',
-                    message: `Command received: ${command}`
+                    message: `Invalid command or you are not an admin.`
                 }));
             }
         }
@@ -1295,7 +1278,6 @@ function handleChatCommand(ws, message) {
     }
 }
 
-// Function to map sides to polygon type
 function getPolygonTypeBySides(sides) {
     switch (sides) {
         case 3: return 'triangle';
@@ -1312,7 +1294,6 @@ function getPolygonTypeBySides(sides) {
 
 function broadcast(data) {
     const serializableData = JSON.parse(JSON.stringify(data));
-
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(serializableData));
@@ -1323,11 +1304,8 @@ function broadcast(data) {
 server.listen(port, config.host, () => {
     console.log(`Server running at ${config.host}:${port}`);
     setInterval(() => {
-
         updateBullets();
         updatePolygons();
         broadcastPolygonUpdates(wss);
-
     }, 1000 / 120)
-
 });
