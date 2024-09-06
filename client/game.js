@@ -698,26 +698,26 @@ export function startGame() {
 
     const oscillationSettings = {
         0: { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
-        1: { colorAdjustment: 20, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
-        2: { colorAdjustment: 40, oscillationRange: 1, oscillationSpeed: 0.001, tpLevel: 0.2 },
-        3: { colorAdjustment: 60, oscillationRange: 1.2, oscillationSpeed: 0.002, tpLevel: 0.3 },
-        4: { colorAdjustment: 100, oscillationRange: 1.4, oscillationSpeed: 0.003, tpLevel: 0.4 },
-        5: { colorAdjustment: 150, oscillationRange: 1.6, oscillationSpeed: 0.004, tpLevel: 0.5 },
-        6: { colorAdjustment: 200, oscillationRange: 1.8, oscillationSpeed: 0.005, tpLevel: 0.6 },
-        7: { colorAdjustment: 250, oscillationRange: 2, oscillationSpeed: 0.006, tpLevel: 0.7 },
-        8: { colorAdjustment: 300, oscillationRange: 2.2, oscillationSpeed: 0.007, tpLevel: 0.8 },
-        9: { colorAdjustment: 350, oscillationRange: 2.4, oscillationSpeed: 0.008, tpLevel: 0.9 },
-        10: { colorAdjustment: 400, oscillationRange: 4, oscillationSpeed: 0.01, tpLevel: 0.5 },
-        11: { colorAdjustment: 450, oscillationRange: 4.2, oscillationSpeed: 0.012, tpLevel: 0.6 },
-        12: { colorAdjustment: 500, oscillationRange: 4.4, oscillationSpeed: 0.014, tpLevel: 0.7 },
-        13: { colorAdjustment: 550, oscillationRange: 4.6, oscillationSpeed: 0.016, tpLevel: 0.8 },
-        14: { colorAdjustment: 600, oscillationRange: 4.8, oscillationSpeed: 0.018, tpLevel: 0.9 },
-        15: { colorAdjustment: 650, oscillationRange: 5, oscillationSpeed: 0.02, tpLevel: 1.0 },
-        16: { colorAdjustment: 700, oscillationRange: 5.2, oscillationSpeed: 0.022, tpLevel: 1.1 },
-        17: { colorAdjustment: 750, oscillationRange: 5.4, oscillationSpeed: 0.024, tpLevel: 1.2 },
-        18: { colorAdjustment: 800, oscillationRange: 5.6, oscillationSpeed: 0.026, tpLevel: 1.3 },
-        19: { colorAdjustment: 850, oscillationRange: 5.8, oscillationSpeed: 0.028, tpLevel: 1.4 },
-        20: { colorAdjustment: 900, oscillationRange: 6, oscillationSpeed: 0.03, tpLevel: 1.5 }
+        1: { colorAdjustment: 50, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
+        2: { colorAdjustment: 50, oscillationRange: 1, oscillationSpeed: 0.001, tpLevel: 0.2 },
+        3: { colorAdjustment: 50, oscillationRange: 1.2, oscillationSpeed: 0.0015, tpLevel: 0.25 },
+        4: { colorAdjustment: 50, oscillationRange: 1.4, oscillationSpeed: 0.002, tpLevel: 0.27 },
+        5: { colorAdjustment: 50, oscillationRange: 1.6, oscillationSpeed: 0.0025, tpLevel: 0.3 },
+        6: { colorAdjustment: 60, oscillationRange: 1.8, oscillationSpeed: 0.003, tpLevel: 0.33 },
+        7: { colorAdjustment: 70, oscillationRange: 2, oscillationSpeed: 0.0035, tpLevel: 0.39 },
+        8: { colorAdjustment: 80, oscillationRange: 2.2, oscillationSpeed: 0.004, tpLevel: 0.42 },
+        9: { colorAdjustment: 90, oscillationRange: 2.4, oscillationSpeed: 0.0045, tpLevel: 0.45 },
+        10: { colorAdjustment: 100, oscillationRange: 2.6, oscillationSpeed: 0.005, tpLevel: 0.5 },
+        11: { colorAdjustment: 110, oscillationRange: 2.8, oscillationSpeed: 0.055, tpLevel: 0.52 },
+        12: { colorAdjustment: 120, oscillationRange: 3, oscillationSpeed: 0.06, tpLevel: 0.54 },
+        13: { colorAdjustment: 130, oscillationRange: 3.2, oscillationSpeed: 0.0065, tpLevel: 0.56 },
+        14: { colorAdjustment: 140, oscillationRange: 3.4, oscillationSpeed: 0.007, tpLevel: 0.58 },
+        15: { colorAdjustment: 150, oscillationRange: 3.6, oscillationSpeed: 0.0075, tpLevel: 0.60 },
+        16: { colorAdjustment: 160, oscillationRange: 3.8, oscillationSpeed: 0.008, tpLevel: 0.62 },
+        17: { colorAdjustment: 170, oscillationRange: 4, oscillationSpeed: 0.0085, tpLevel: 0.64 },
+        18: { colorAdjustment: 180, oscillationRange: 4.2, oscillationSpeed: 0.009, tpLevel: 0.66 },
+        19: { colorAdjustment: 190, oscillationRange: 4.4, oscillationSpeed: 0.0095, tpLevel: 0.68 },
+        20: { colorAdjustment: 200, oscillationRange: 4.6, oscillationSpeed: 0.01, tpLevel: 0.7 }
     };
     
     function hexToRgb(hex) {
@@ -858,6 +858,14 @@ export function startGame() {
         ctx.closePath();
         const baseColor = polygonColors[polygon.sides];
 
+        function getAdjustmentValue(radiant) {
+            // You can adjust this function to fit your specific pattern
+            const baseValues = [0, 50, 50, 50, 50, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 /*350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900*/];
+            return baseValues[radiant] || 0;
+        }
+
+        const adjustment = getAdjustmentValue(polygon.radiant);
+
         if (!baseColor) {
             console.error('Unknown polygon shape:', polygon.shape);
             ctx.fillStyle = '#FFFFFF';
@@ -865,84 +873,8 @@ export function startGame() {
             if (polygon.radiant === 0) {
                 ctx.fillStyle = polygon.color;
                 ctx.strokeStyle = polygon.borderColor;
-            } else if (polygon.radiant === 1) {
-                const color = adjustColor(baseColor, timestamp, 20);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 2) {
-                const color = adjustColor(baseColor, timestamp, 40);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 3) {
-                const color = adjustColor(baseColor, timestamp, 60);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 4) {
-                const color = adjustColor(baseColor, timestamp, 100);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 5) {
-                const color = adjustColor(baseColor, timestamp, 150);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 6) {
-                const color = adjustColor(baseColor, timestamp, 200);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 7) {
-                const color = adjustColor(baseColor, timestamp, 250);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 8) {
-                const color = adjustColor(baseColor, timestamp, 300);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 9) {
-                const color = adjustColor(baseColor, timestamp, 350);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 10) {
-                const color = adjustColor(baseColor, timestamp, 400);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 11) {
-                const color = adjustColor(baseColor, timestamp, 450);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 12) {
-                const color = adjustColor(baseColor, timestamp, 500);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 13) {
-                const color = adjustColor(baseColor, timestamp, 550);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 14) {
-                const color = adjustColor(baseColor, timestamp, 600);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 15) {
-                const color = adjustColor(baseColor, timestamp, 650);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 16) {
-                const color = adjustColor(baseColor, timestamp, 700);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 17) {
-                const color = adjustColor(baseColor, timestamp, 750);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 18) {
-                const color = adjustColor(baseColor, timestamp, 800);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 19) {
-                const color = adjustColor(baseColor, timestamp, 850);
-                ctx.fillStyle = color;
-                ctx.strokeStyle = darkenColor(color, 0.7);
-            } else if (polygon.radiant === 10) {
-                const color = adjustColor(baseColor, timestamp, 900);
+            } else if (polygon.radiant >= 1) {
+                const color = adjustColor(baseColor, timestamp, adjustment);
                 ctx.fillStyle = color;
                 ctx.strokeStyle = darkenColor(color, 0.7);
             }
