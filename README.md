@@ -12,6 +12,11 @@ start game with with `pnpm dev`
 
 the game is at [http://127.0.0.1:3000]
 
+## Usimg commands
 
+type `/1234` to gain admin access
 
+right now we only have /polygon
 
+you can use `/polygon {sides} {radiance ammount (min 0, max 20)}`
+so for example `/polygon 8 10` spawns a radiant 10 octagon
