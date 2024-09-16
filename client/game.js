@@ -256,7 +256,8 @@ export function startGame() {
             return;
         }
     
-        const ws = new WebSocket(import.meta.env.VITE_WS_URL);
+        //const ws = new WebSocket(import.meta.env.VITE_WS_URL);
+        const ws = new WebSocket('ws://127.0.0.1:3000');
     
         ws.onopen = () => {
             console.log('Connected to WebSocket server');
@@ -1538,7 +1539,7 @@ export function startGame() {
             //updatePlayerRadius();
             //updateScoreDisplay();
             //console.log({players})
-            console.log(polygons);
+            //console.log(polygons);
     
         }
         requestAnimationFrame(gameLoop);
