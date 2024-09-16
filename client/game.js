@@ -256,7 +256,7 @@ export function startGame() {
             return;
         }
     
-        const ws = new WebSocket('ws://localhost:3000');
+        const ws = new WebSocket(import.meta.env.VITE_WS_URL);
     
         ws.onopen = () => {
             console.log('Connected to WebSocket server');
