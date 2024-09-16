@@ -9,7 +9,7 @@ const config = {
     host: '0.0.0.0',
     key: path.resolve(__dirname, 'key.pem'),
     cert: path.resolve(__dirname, 'cert.pem'),
-    staticDir: path.join(__dirname, isDevelopment ? 'client/' : 'client/dist'),
+    staticDir: path.join(__dirname, isDevelopment ? '../client/' : '../client/dist'),
     isHosting: false,
     
 };

@@ -27,18 +27,18 @@ port = config.port;
 let server;
 
 if (config.isHosting) {
-  if (!config.key || !config.cert) {
-    throw new Error('SSL keyFile and certFile must be specified when isHosting is true');
-  }
+    if (!config.key || !config.cert) {
+        throw new Error('SSL keyFile and certFile must be specified when isHosting is true');
+    }
 
-  const options = {
-    key: fs.readFileSync(config.key),
-    cert: fs.readFileSync(config.cert)
-  };
+    const options = {
+        key: fs.readFileSync(config.key),
+        cert: fs.readFileSync(config.cert)
+    };
 
-  server = https.createServer(options, app);
+    server = https.createServer(options, app);
 } else {
-  server = http.createServer(app);
+    server = http.createServer(app);
 }
 
 const wss = new WebSocket.Server({ server });

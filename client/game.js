@@ -168,6 +168,11 @@ function setRandomPlayerPosition() {
 
 setRandomPlayerPosition();
 
+function generateRandomUsername() {
+    const randomNumber = Math.floor(Math.random() * 10000);
+    return `Player${randomNumber}`;
+}
+
 export function startGame() {
     const playerName = playerNameInput.value.trim() ||  generateRandomUsername();
     gameStart = true;
