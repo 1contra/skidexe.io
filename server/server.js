@@ -1307,5 +1307,5 @@ server.listen(port, config.host, () => {
         updateBullets();
         updatePolygons();
         broadcastPolygonUpdates(wss);
-    }, 1000 / 120)
+    }, 1000 / 60)
 });

@@ -128,8 +128,8 @@ const player = {
     id: '',
     color: '#00bbff',
     borderColor: '#007fad',
-    speed: 0.1,
-    maxSpeed: 4,
+    speed: 0.2,
+    maxSpeed: 8,
     drag: 0.95,
     velocityX: 0,
     velocityY: 0,
@@ -145,7 +145,7 @@ const player = {
     bulletColor: '#00bbff',
     bulletBorderColor: '#006c9e',
     bulletBorderWidth: 2,
-    bulletSpeed: 3,
+    bulletSpeed: 6,
     bulletMaxLifetime: 3000,
     bulletDamage: 10,
     get hitbox() {
@@ -1489,7 +1489,7 @@ export function startGame() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     
-    const fps = 120;
+    const fps = 60;
     const frameInterval = 1000 / fps;
     const fpsDisplay = document.getElementById('fps');
     const displayUpdateInterval = 500;
