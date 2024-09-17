@@ -1,16 +1,17 @@
 import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue'; // or your preferred plugin
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
-  root: './', // Ensure this is correct or adjust it if necessary
+  root: './src',
   plugins: [vue()],
   build: {
-    outDir: 'dist', // Output directory for bundled files
+    outDir: '../dist',
   },
   server: {
-    port: 3000, // Adjust the port if needed
+    port: 3000,
     watch: {
       usePolling: true
     }
   },
+  publicDir: '../public',
 });
