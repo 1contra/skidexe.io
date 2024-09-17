@@ -6,7 +6,6 @@ const playerNameInput = document.getElementById('playerName');
 const chatInput = document.getElementById('chatInput');
 const chatBox = document.getElementById('chatBox'); 
 const instructionMessage = document.getElementById('instructionMessage');
-
 const messages = [];
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -21,32 +20,12 @@ let leaderboardPlayers = new Map();
 let mapSize = 3000;
 let gridSize = 50;
 
-export { polygons }
-export let gameStart = false;
-
-const keys = {
-    w: false,
-    a: false,
-    s: false,
-    d: false
-};
-
 const barrel = {
     length: 20,
     width: 7,
     color: '#8f8f8f',
     borderColor: '#6e6e6e',
     angle: 0
-};
-
-const bulletSettings = {
-    radius: 7,
-    color: '#00bbff',
-    borderColor: '#006c9e',
-    borderWidth: 2,
-    speed: 3,
-    maxLifetime: 3000,
-    damage: 10,
 };
 
 export function getPlayers() {
@@ -111,7 +90,6 @@ function drawMessages() {
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-
     messages.forEach((msg, index) => {
         const yOffset = 30;
         const xOffset = 10;
@@ -181,7 +159,7 @@ export function startGame() {
     canvas.style.display = 'block';
     changelog.style.display = 'none';
     let chatVisible = false;
-    let chatBoxFocused = false; // Variable to track if chatbox is focused
+    let chatBoxFocused = false;
 
     chatInput.addEventListener('focus', () => {
         chatBoxFocused = true;
@@ -209,15 +187,6 @@ export function startGame() {
             }, 10);
         }
         chatVisible = !chatVisible;
-
-        /*
-        // Toggle instruction message visibility
-        if (chatVisible) {
-            instructionMessage.classList.add('hidden');
-        } else {
-            instructionMessage.classList.remove('hidden');
-        }
-            */
     }
 
     document.addEventListener('keydown', (event) => {
@@ -515,8 +484,6 @@ export function startGame() {
     
     const previousPositions = new Map();
     const targetPositions = new Map();
-
-    const x = canvas.width - 200;
     const y = 20;
     const lineHeight = 20;
 
@@ -533,14 +500,11 @@ export function startGame() {
                 targetPositions.set(player.id, newYPosition);
             }
         });
-
         drawLeaderboard(topPlayers);
     }
 
     function drawLeaderboard() {
-
         if (gameStart) {
-
             const playerArray = Array.from(leaderboardPlayers.values());
             playerArray.sort((a, b) => b.score - a.score);
             const x = canvas.width - 200;
@@ -589,12 +553,8 @@ export function startGame() {
                 ctx.fillStyle = 'white';
                 ctx.strokeText(`${player.playerName} - ${formattedScore}`, x + 20, playerY + 14);
                 ctx.fillText(`${player.playerName} - ${formattedScore}`, x + 20, playerY + 14);
-
-                
             });
-
         }
-
     }
 
     CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
@@ -674,7 +634,6 @@ export function startGame() {
     }
     
     const baseHealthValues = [9, 19, 49, 99, 199, 999, 1999, 2999];
-    
     const polygonColors = {
         '3': '#FF443D',
         '4': '#ffed4a',
@@ -686,22 +645,6 @@ export function startGame() {
         '10': '#09040a'
     };
     
-    /*
-    const oscillationSettings = {
-        0: { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
-        1: { colorAdjustment: 20, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
-        2: { colorAdjustment: 40, oscillationRange: 1, oscillationSpeed: 0.001, tpLevel: 0.2 },
-        3: { colorAdjustment: 60, oscillationRange: 1.2, oscillationSpeed: 0.002, tpLevel: 0.3 },
-        4: { colorAdjustment: 100, oscillationRange: 1.4, oscillationSpeed: 0.003, tpLevel: 0.4 },
-        5: { colorAdjustment: 150, oscillationRange: 1.6, oscillationSpeed: 0.004, tpLevel: 0.5 },
-        6: { colorAdjustment: 200, oscillationRange: 1.8, oscillationSpeed: 0.005, tpLevel: 0.6 },
-        7: { colorAdjustment: 250, oscillationRange: 2, oscillationSpeed: 0.006, tpLevel: 0.7 },
-        8: { colorAdjustment: 300, oscillationRange: 2.2, oscillationSpeed: 0.007, tpLevel: 0.8 },
-        9: { colorAdjustment: 350, oscillationRange: 2.4, oscillationSpeed: 0.008, tpLevel: 0.9},
-        10: { colorAdjustment: 400, oscillationRange: 4, oscillationSpeed: 0.01, tpLevel: .5 },
-    };
-    */
-
     const oscillationSettings = {
         0: { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
         1: { colorAdjustment: 50, oscillationRange: 0, oscillationSpeed: 0, tpLevel: 0.1 },
@@ -748,7 +691,6 @@ export function startGame() {
             g = parseInt(hex[2] + hex[3], 16);
             b = parseInt(hex[4] + hex[5], 16);
         }
-    
         return [r, g, b];
     }
     
@@ -820,7 +762,6 @@ export function startGame() {
                 } else {
                     ctx.lineTo(x, y);
                 }
-    
                 prevX = x;
                 prevY = y;
             }
@@ -836,7 +777,6 @@ export function startGame() {
             ctx.restore();
         }
 
-        // Draw triangle spikes if polygon is radiant 10
         if (polygon.radiant === 10) {
             drawSpikes(ctx, polygon, timestamp);
         }
@@ -855,7 +795,6 @@ export function startGame() {
             } else {
                 ctx.lineTo(x, y);
             }
-    
             prevX = x;
             prevY = y;
         }
@@ -865,7 +804,6 @@ export function startGame() {
         const baseColor = polygonColors[polygon.sides];
 
         function getAdjustmentValue(radiant) {
-            // You can adjust this function to fit your specific pattern
             const baseValues = [0, 50, 50, 50, 50, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 /*350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900*/];
             return baseValues[radiant] || 0;
         }
@@ -908,71 +846,44 @@ export function startGame() {
         ctx.fillStyle = polygon.color
         drawRoundedRect(HhealthBarX - healthBarWidth / 2, HhealthBarY, healthBarWidth * healthPercentage, healthBarHeight, 3);
         ctx.fill();
-    
     }
 
     function drawSpikes(ctx, polygon, timestamp) {
         const baseColor = polygonColors[polygon.sides];
         const settings = oscillationSettings[polygon.radiant] || { colorAdjustment: 0, oscillationRange: 0, oscillationSpeed: 0 };
         const { colorAdjustment, oscillationRange, oscillationSpeed, tpLevel } = settings;
-        const minSizeFactor = 1; 
-        const maxSizeFactor = 1 + oscillationRange;
-        const sizeFactor = minSizeFactor + (maxSizeFactor - minSizeFactor) * (0.5 * (Math.sin(timestamp * oscillationSpeed) + 1));
-        const largerRadius = polygon.radius * sizeFactor;
         const numSpikes = polygon.sides;
-        const spikeCount = polygon.sides;; // Number of spikes
-        //const spikeLength = polygon.radius * 1.5;
+        const spikeCount = polygon.sides;;
         const spikeWidth = polygon.radius / 4;
         const angleStep = (2 * Math.PI) / numSpikes;
-        const spinSpeed = 0.01; // Speed of spinning
-        const rotationSpeed = 0.002; // Speed of rotation
-
-        // Function to convert hex color to RGBA
-        function hexToRgba(hex, alpha) {
-            let r = parseInt(hex.slice(1, 3), 16);
-            let g = parseInt(hex.slice(3, 5), 16);
-            let b = parseInt(hex.slice(5, 7), 16);
-            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        }
-    
+        const rotationSpeed = 0.002;
         ctx.save();
-        ctx.translate(0, 0); // Center of the polygon
-
-        // Determine the current rotation angle based on the timestamp
+        ctx.translate(0, 0);
         let rotationAngle = timestamp * rotationSpeed;
+        let spikeLength = 20;
 
-        let spikeLength = 20; // Length from the center to the tip of the triangle
-        const baseLength = 10;  // Length of the base of the triangle, closer to the center
-        const fasterRotationSpeed = 0.1; // Faster rotation speed for the second set
 
         for (let i = 0; i < spikeCount; i++) {
             const angle = i * angleStep + rotationAngle;
-
-            // Calculate the tip point of the triangle (long end pointing outward)
             const xTip = Math.cos(angle) * (polygon.radius + spikeLength);
             const yTip = Math.sin(angle) * (polygon.radius + spikeLength);
-
-            // Calculate the base points of the triangle (short end towards the center)
             const xBase1 = Math.cos(angle + angleStep / 2) * (polygon.radius);
             const yBase1 = Math.sin(angle + angleStep / 2) * (polygon.radius);
-
             const xBase2 = Math.cos(angle - angleStep / 2) * (polygon.radius);
             const yBase2 = Math.sin(angle - angleStep / 2) * (polygon.radius);
-
             ctx.beginPath();
-            ctx.moveTo(xTip, yTip); // Tip of the triangle (pointy end)
-            ctx.lineTo(xBase1, yBase1); // One base point of the triangle
-            ctx.lineTo(xBase2, yBase2); // The other base point of the triangle
-            ctx.closePath(); // Complete the triangle
-            ctx.lineWidth = spikeWidth; // Adjust line width if needed
+            ctx.moveTo(xTip, yTip);
+            ctx.lineTo(xBase1, yBase1);
+            ctx.lineTo(xBase2, yBase2);
+            ctx.closePath();
+            ctx.lineWidth = spikeWidth;
             const color = adjustColor(baseColor, timestamp, colorAdjustment);
             ctx.strokeStyle = darkenColor(color, 0.5);
             ctx.stroke();
             const color2 = darkenColor(baseColor, timestamp, colorAdjustment);
-            ctx.fillStyle = brightenColor(color2, 0.8); // Optional: fill color
-            ctx.fill(); // Fill the triangle with color
+            ctx.fillStyle = brightenColor(color2, 0.8);
+            ctx.fill();
         }
-
         ctx.restore();
     }
     
@@ -1015,24 +926,18 @@ export function startGame() {
 
     function updatePlayerRadius(player) {
         const baseRadius = 15;
-        const growthRate = 0.5; // Adjusted growth rate for more gradual growth
+        const growthRate = 0.5;
         const maxRadius = 100;
-    
-        // Using logarithm with a controlled growth
         player.radius = Math.min(baseRadius + growthRate * Math.log(player.score + 1), maxRadius);
-    
         const baseBulletRadius = 7;
-        const bulletGrowthRate = 0.5; // Adjusted growth rate for bullets
+        const bulletGrowthRate = 0.5;
         const maxBulletRadius = 15;
-    
         player.bulletRadius = Math.min(baseBulletRadius + bulletGrowthRate * Math.log(player.score + 1), maxBulletRadius);
-    
         const baseBarrelLength = 20;
         const baseBarrelWidth = 7;
-        const barrelGrowthRate = 1; // Adjusted growth rate for barrel
+        const barrelGrowthRate = 1;
         const maxBarrelLength = 300;
         const maxBarrelWidth = 15;
-    
         barrel.length = Math.min(baseBarrelLength + barrelGrowthRate * Math.log(player.score + 1), maxBarrelLength);
         barrel.width = Math.min(baseBarrelWidth + barrelGrowthRate * Math.log(player.score + .5), maxBarrelWidth);
     }
@@ -1083,35 +988,26 @@ export function startGame() {
         ctx.stroke();
         }
     
-    
         function drawBullets() {
             bullets.forEach(bullet => {
-                // Get the player who owns the bullet from the players map
                 const owner = players.get(bullet.ownerId);
-                //console.log({players})
-                
-                // If the owner exists, proceed with drawing
                 if (owner) {
                     const isOwnedBySelf = bullet.ownerId === player.id;
                     const bulletColor = isOwnedBySelf ? owner.bulletColor : '#ff2a1c';
                     const bulletBorderColor = isOwnedBySelf ? owner.bulletBorderColor : '#990900';
-                    
                     ctx.strokeStyle = bulletBorderColor;
-                    ctx.lineWidth = owner.bulletBorderWidth * 2; // Use the owner's bullet border width
+                    ctx.lineWidth = owner.bulletBorderWidth * 2;
                     ctx.beginPath();
-                    ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, owner.bulletRadius + owner.bulletBorderWidth, 0, Math.PI * 2); // Use the owner's bullet radius
+                    ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, owner.bulletRadius + owner.bulletBorderWidth, 0, Math.PI * 2);
                     ctx.stroke();
-                    
                     ctx.fillStyle = bulletColor;
                     ctx.beginPath();
-                    ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, owner.bulletRadius, 0, Math.PI * 2); // Use the owner's bullet radius
+                    ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, owner.bulletRadius, 0, Math.PI * 2);
                     ctx.fill();
                 } 
 
                 const isOwnedBySelf = bullet.ownerId === player.id;
-
                 if (!isOwnedBySelf) return;
-
                 const bulletColor = isOwnedBySelf ? player.bulletColor : '#ff2a1c';
                 const bulletBorderColor = isOwnedBySelf ? player.bulletBorderColor : '#990900';
                 ctx.strokeStyle = bulletBorderColor;
@@ -1123,9 +1019,6 @@ export function startGame() {
                 ctx.beginPath();
                 ctx.arc(bullet.x - player.x + canvas.width / 2, bullet.y - player.y + canvas.height / 2, player.bulletRadius, 0, Math.PI * 2);
                 ctx.fill();
-
-
-
             });
         }
             
@@ -1137,10 +1030,8 @@ export function startGame() {
         d: false
     };
 
-    // Function to handle keydown events
     function handleKeyDown(event) {
-        if (chatBoxFocused) return; // Do nothing if chatbox is focused
-
+        if (chatBoxFocused) return;
         switch (event.key) {
             case 'w':
                 if (chatBoxFocused) return;
@@ -1161,7 +1052,6 @@ export function startGame() {
         }
     }
 
-    // Function to handle keyup events
     function handleKeyUp(event) {
         switch (event.key) {
             case 'w':
@@ -1179,7 +1069,6 @@ export function startGame() {
         }
     }
 
-    // Attach event listeners for keydown and keyup
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
 
@@ -1187,7 +1076,7 @@ export function startGame() {
         if (!gameStart) return;
         let accelerationX = 0;
         let accelerationY = 0;
-        if (!chatBoxFocused) { // Only process movement if chatbox is not focused
+        if (!chatBoxFocused) {
             if (keys.w) accelerationY -= player.speed;
             if (keys.a) accelerationX -= player.speed;
             if (keys.s) accelerationY += player.speed;
@@ -1239,7 +1128,6 @@ export function startGame() {
     }
     
     function updateBullets() {
-        //if (!gameStart) return;
         const hitPolygons = new Set();
         bullets.forEach((bullet, index) => {
 
@@ -1272,7 +1160,6 @@ export function startGame() {
                         hitPolygons.add(polygon);
                         if (polygon.health <= 0) {
                             if (bullet.ownerId === player.id) {
-                                //console.log("Polygon destroyed. Player's new score:", player.score);
                                 const collisionData = {
                                     type: 'polygonHit',
                                     playerId: player.id,
@@ -1289,7 +1176,6 @@ export function startGame() {
     
                     if (polygon.isFading) return;
                     bullets.splice(index, 1);
-                    //console.log("bullet hit polygon")
                     return;
                 }
             });
@@ -1301,7 +1187,6 @@ export function startGame() {
                     const playerDistance = Math.sqrt(playerDx * playerDx + playerDy * playerDy);
                     if (playerDistance < 15 + player.bulletRadius) {
                         bullets.splice(index, 1);
-                        //console.log("bullet hit player")
                         return;
                     }
                 }
@@ -1390,25 +1275,6 @@ export function startGame() {
                 ctx.arc(p.x - player.x + canvas.width / 2, p.y - player.y + canvas.height / 2, p.radius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.stroke();
-
-                //console.log({p})
-    
-                const barrel = {
-                    angle: p.barrelAngle || 0,
-                    length: p.barrelLength || 10,
-                    width: p.barrelWidth || 1,
-                    color: p.barrelColor || '#8f8f8f',
-                    borderColor: p.barrelBorderColor || '#6e6e6e',
-                };
-    
-                /* PLAYER NAME BROKEN
-                ctx.font = '12px Arial';
-                ctx.fillStyle = 'black';
-                const textX = p.x;
-                const textY = p.y;
-                ctx.fillText(p.name, textX, textY);
-                */
-    
                 const centerX = p.x - p.x + canvas.width / 2;
                 const centerY = p.y - p.y + canvas.height / 2;
                 const barrelEndX = centerX + Math.cos(p.barrelAngle) * p.barrelLength;
@@ -1451,17 +1317,7 @@ export function startGame() {
     function clearCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-    
-    /*
-    window.addEventListener('keydown', (e) => {
-        if (e.key in keys) keys[e.key] = true;
-    });
-    
-    window.addEventListener('keyup', (e) => {
-        if (e.key in keys) keys[e.key] = false;
-    });
-    */
-    
+
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -1518,7 +1374,6 @@ export function startGame() {
         deltaTime = timestamp - lastTime;
         if (deltaTime >= frameInterval) {
             lastTime = timestamp - (deltaTime % frameInterval);
-            //drawBarrels();
             updateFPS(timestamp);
             clearCanvas();
             drawOutOfBounds();
@@ -1534,19 +1389,12 @@ export function startGame() {
             updateLeaderboard();
             updatePlayer();
             updatePlayerRadius(player);
-            //renderInstructions();
-            //handleChatVisibility();
-            //updatePlayerRadius();
-            //updateScoreDisplay();
-            //console.log({players})
-            //console.log(polygons);
-    
         }
         requestAnimationFrame(gameLoop);
     }
     requestAnimationFrame(gameLoop);
-    
     const ws = connectWebSocket(); 
     gameLoop();
 }
-
+export { polygons }
+export let gameStart = false;
