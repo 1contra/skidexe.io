@@ -1,5 +1,5 @@
 # Skidexe.io
-Skidexe.io is an open source recreation of a few web games (scenexe, diep, arras)
+Skidexe.io is an open source recreation of a few web games (scenexe, diep, arras) and its completely broken...
 
 any help is appreciated
 if anyone wants to work on the websocket protocol we need to use Unit8Array instead of json because the performance is messed up
