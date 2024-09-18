@@ -28,10 +28,6 @@ const barrel = {
     angle: 0
 };
 
-export function getPlayers() {
-    return Array.from(players.values());
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const exitMenu = document.getElementById('exitMenu');
     const resumeBtn = document.getElementById('resumeBtn');
@@ -136,8 +132,6 @@ const player = {
         };
     },
 };
-
-export { player };
 
 function setRandomPlayerPosition() {
     player.x = Math.random() * (mapSize - player.radius * 2) + player.radius;
@@ -1396,5 +1390,10 @@ export function startGame() {
     const ws = connectWebSocket(); 
     gameLoop();
 }
+
 export { polygons }
 export let gameStart = false;
+export { player };
+export function getPlayers() {
+    return Array.from(players.values());
+}
