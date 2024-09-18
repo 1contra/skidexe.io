@@ -5,16 +5,11 @@ const http = require('http');
 const https = require('https');
 const WebSocket = require('ws');
 const uWS = require('uWebSockets.js');
-
 const app = express();
-
 const config = require('./config');
-
 const fs = require('fs');
-
 const adminToken = process.env.ADMIN_SECRET_KEY;
 const adminTokens = new Map(); // Stores player IDs with admin status
-
 const players = new Map();
 const BULLET_POOL_SIZE = 10000;
 const bulletPool = [];
@@ -22,10 +17,10 @@ const activeBullets = new Map();
 const barrels = new Map();
 let mapSize = 3000;
 let gridSize = 50; 
-
 port = config.port;
 let server;
-
+let leaderboard = [];
+const scoreInterpolations = new Map();
 if (config.isHosting) {
     if (!config.key || !config.cert) {
         throw new Error('SSL keyFile and certFile must be specified when isHosting is true');
@@ -40,18 +35,14 @@ if (config.isHosting) {
 } else {
     server = http.createServer(app);
 }
-
 const wss = new WebSocket.Server({ server });
 const wssFFA = new WebSocket.Server({ noServer: true });
 const wssTDM = new WebSocket.Server({ noServer: true });
-
 const servers = [
     { id: 1, name: 'FFA', address: '127.0.0.1', port: 3000, mode: 'ffa' },
     { id: 2, name: '2 TDM', address: '127.0.0.1', port: 3001, mode: '2tdm' },
     //{ id: 3, name: '4 TDM', address: 'localhost', port: 3000, mode: '4tdm' }
 ];
-
-let leaderboard = [];
 
 app.use(express.static(path.join(config.staticDir)));
 
@@ -72,13 +63,9 @@ app.get('/game', (req, res) => {
     res.sendFile(path.join(__dirname, 'game.html'));
 });
 
-
-
 function generateUniqueId() {
     return '_' + Math.random().toString(36).substr(2, 9);
 }
-
-
 
 class Polygon {
     constructor(x, y, sides, radius, color, borderColor, speed, health, fadeDuration = 200, baseHealth, score, radiant = 0) {
@@ -490,8 +477,6 @@ const radiantScoreMultipliers = {
     19: 274877906944,
     20: 1099511627776
 };
-
-const scoreInterpolations = new Map();
 
 function addScorePlayer(bulletId, score) {
     const bullet = activeBullets.get(bulletId);
@@ -968,17 +953,6 @@ function broadcastPlayerUpdate(id) {
         name: player.name,
         bulletBorderColor: player.bulletBorderColor,
         bulletBorderWidth: player.bulletBorderWidth,
-    });
-}
-
-function broadcastPlayerUpdates(playerName) {
-    const playerArray = Array.from(players.values());
-    playerArray.sort((a, b) => b.score - a.score);
-    const top10Players = playerArray.slice(0, 10);
-
-    broadcast({
-        type: 'playerData',
-        players: top10Players
     });
 }
 
