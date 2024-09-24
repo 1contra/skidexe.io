@@ -1,4 +1,7 @@
 # Skidexe.io
+
+# i made this in a week and it was just a test so its very bad, dont hate 
+
 Skidexe.io is an open source recreation of a few web games (scenexe, diep, arras) and its completely broken...
 
 any help is appreciated
