@@ -1,13 +1,11 @@
 # Skidexe.io
 
-# i made this in a week and it was just a test so its very bad, dont hate 
+# i made this in a week and it was just a test so its crap
+(edit) lowk made this over a year ago using gpt, i didnt know what i was doing back then
 
-Skidexe.io is an open source recreation of a few web games (scenexe, diep, arras) and its completely broken...
+Skidexe.io is an open source recreation of a few web games (scenexe, diep, arras)
 
-any help is appreciated
-if anyone wants to work on the websocket protocol we need to use Unit8Array instead of json because the performance is messed up
-
-### This is work in progress and not fully ready for production.
+## Lowkey the whole server needs to be re-written
 
 ## Running locally
 
